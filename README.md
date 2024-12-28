@@ -11,6 +11,10 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 * Automatically decomposes glyphs, reducing font size.
 * Automatically adds anchors.
 
+## Examples
+
+* Check the [fonts](fonts) folder!
+
 ## Building a font
 
 1. If your source font is in .ttf or .otf vector format, convert it first to the .bdf pixel format. You can use the `otf2bdf` converter available at http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/. Under macOS, install with [Homebrew](https://brew.sh/). Under Ubuntu, install with this command: `sudo apt install otf2bdf`.
