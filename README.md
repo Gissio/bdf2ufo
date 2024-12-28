@@ -6,12 +6,12 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 
 ## Features
 
-* Static and variable font support.
-* Variable controls for pixel size, roundness and bleed control, simulating the appearance of LCD screens, CRT monitors and dot matrix printouts.
-* Automatic glyph composition, reducing font size.
-* Automatic glyph anchoring.
+* Automatically creates static and variable fonts.
+* Supports three variable axes: pixel volume, roundness and bleed, simulating the appearance of LCD screens, CRT monitors and dot matrix printouts.
+* Automatically decomposes glyphs, reducing font size.
+* Automatically adds anchors.
 
-## Building a font to .otf and .ttf
+## Building a font
 
 1. If your source font is in .ttf or .otf vector format, convert it first to the .bdf pixel format. You can use the `otf2bdf` converter available at http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/. Under macOS, install with [Homebrew](https://brew.sh/). Under Ubuntu, install with this command: `sudo apt install otf2bdf`.
 2. Make sure [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/) are installed.
