@@ -19,7 +19,7 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 4. Create an empty folder for storing the .ufo designspace.
 5. Run bdf2ufo with the appropriate options. For usage help, try:
 
-    python bdf2ufo.py --help
+    python tools/bdf2ufo.py --help
 
 6. Compile the .ufo designspace:
 
