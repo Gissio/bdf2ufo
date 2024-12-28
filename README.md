@@ -2,22 +2,22 @@
 
 # bdf2ufo
 
-Converts .bdf pixel fonts to .ufo static and variable vector fonts, which can then be converted to .ttf and .otf fonts.
+Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 
 ## Features
 
 * Static and variable font support.
-* Variable font controls for pixel size, roundness and bleed control, simulating the appearance of LCD screens, CRT monitors and dot matrix printouts.
+* Variable controls for pixel size, roundness and bleed control, simulating the appearance of LCD screens, CRT monitors and dot matrix printouts.
 * Automatic glyph composition, reducing font size.
 * Automatic glyph anchoring.
 
-## Building a font
+## Building a font to .otf and .ttf
 
 1. If your source font is in .ttf or .otf vector format, convert it first to the .bdf pixel format. You can use the `otf2bdf` converter available at http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/. Under macOS, install with [Homebrew](https://brew.sh/). Under Ubuntu, install with this command: `sudo apt install otf2bdf`.
-2. Install [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/). 
-3. Install bdf2ufo requirements: `pip install -r requirements.txt`
-4. Create a .ufo designspace folder.
-5. Run bdf2ufo with the appropriate options. To get usage help, type:
+2. Make sure [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/) are installed.
+3. Install the bdf2ufo requirements: `pip install -r requirements.txt`
+4. Create an empty folder for storing the .ufo designspace.
+5. Run bdf2ufo with the appropriate options. For usage help, try:
 
     python bdf2ufo.py --help
 

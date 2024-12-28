@@ -30,7 +30,7 @@ import ufoLib2.objects.anchor
 # Definitions
 
 log_level = 1
-bdf2ufo_version = '1.0.0'
+bdf2ufo_version = '0.9.0'
 
 weight_from_weight_name = {
     'thin': 100,
@@ -42,7 +42,7 @@ weight_from_weight_name = {
     'medium': 500,
     'demibold': 600,
     'semibold': 600,
-    'Bold': 700,
+    'bold': 700,
     'extrabold': 800,
     'ultrabold': 800,
     'black': 900,
@@ -271,13 +271,13 @@ custom_anchors = [
 ]
 
 designspace_configurations = [
-    ('Thin Square NoBleed', 0.25, 0, 0),
+    ('Thin Square NoBleed', 0.1, 0, 0),
     ('Thick Square NoBleed', 1, 0, 0),
-    ('Thin Round NoBleed', 0.25, 1, 0),
+    ('Thin Round NoBleed', 0.1, 1, 0),
     ('Thick Round NoBleed', 1, 1, 0),
-    ('Thin Square Bleed', 0.25, 0, 1),
+    ('Thin Square Bleed', 0.1, 0, 1),
     ('Thick Square Bleed', 1, 0, 1),
-    ('Thin Round Bleed', 0.25, 1, 1),
+    ('Thin Round Bleed', 0.1, 1, 1),
     ('Thick Round Bleed', 1, 1, 1),
 ]
 
@@ -344,6 +344,8 @@ def load_bdf(path, config):
         bdf_glyphs = {}
         bdf_codepoints = {}
 
+        codepoint_subset = ''
+
         cap_height = 0
         x_height = 0
 
@@ -351,15 +353,15 @@ def load_bdf(path, config):
             # Extract properties
             codepoint = bdf_glyph.codepoint
 
-            if 'codepoint_subset' in config:
-                codepoint_subset = config['codepoint_subset']
-
-                if not match_codepoint(codepoint_subset, codepoint):
-                    continue
-
             if codepoint == 0:
                 name = '.notdef'
             else:
+                if 'codepoint_subset' in config:
+                    codepoint_subset = config['codepoint_subset']
+
+                    if not match_codepoint(codepoint_subset, codepoint):
+                        continue
+
                 name = bdf_glyph.name.decode('utf-8')
 
                 if not name[0].isalnum():
@@ -427,7 +429,8 @@ def load_bdf(path, config):
             _, _, modifier_codepoint = combining_infos[combining_codepoint]
 
             if modifier_codepoint in bdf_codepoints and\
-                    combining_codepoint not in bdf_codepoints:
+                    combining_codepoint not in bdf_codepoints and\
+                match_codepoint(codepoint_subset, combining_codepoint):
                 modifier_name = bdf_codepoints[modifier_codepoint]
                 modifier_glyph = bdf_glyphs[modifier_name]
 
@@ -468,7 +471,7 @@ def load_bdf(path, config):
         else:
             weight = 400
         slant = get_bdf_property(
-            bdf, 'SLANT', '')
+            bdf, 'SLANT', '').upper()
         if slant in slope_name_from_slant:
             slope_name = slope_name_from_slant[slant]
         else:
@@ -486,10 +489,9 @@ def load_bdf(path, config):
         if width_class != 5:
             style_name += ' ' + width_name_from_width_class[width_class]
 
-        copyright = '\n'.join([s.decode('utf-8') for s in bdf.comments])
-        if copyright == '':
-            copyright = get_bdf_property(
-                bdf, 'COPYRIGHT', '')
+        copyright = get_bdf_property(
+            bdf, 'COPYRIGHT', '\n'.join([s.decode('utf-8')
+                                         for s in bdf.comments]))
         designer = ''
         designer_url = ''
         manufacturer = get_bdf_property(
@@ -918,45 +920,75 @@ def decompose_bdf_glyph(bdf_font, composed_name):
 
 
 def get_points(units_per_pixel,
-               pixel_size,
+               pixel_volume,
                pixel_roundness,
                pixel_bleed):
     pixel_unit = units_per_pixel / 2
-    unit = pixel_size * pixel_unit
+    unit = pixel_volume * pixel_unit
     radius = pixel_roundness * unit
-    midarc = radius * math.cos(math.radians(45))
-    tangent = radius * math.tan(math.radians(22.5))
-    max_x = unit + pixel_bleed * (pixel_unit - unit + radius)
+
+    # Cubic curves
+    tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
+    max_x = unit + pixel_bleed * (2 * pixel_unit - unit)
     max_y = unit
     min_x = max_x - radius
     min_y = max_y - radius
     tangent_x = min_x + tangent
     tangent_y = min_y + tangent
-    midarc_x = min_x + midarc
-    midarc_y = min_y + midarc
 
     return [
-        [(min_y, max_x), 'qcurve'],
-        [(-min_y, max_x), 'qcurve'],
+        [(min_y, max_x), 'curve'],
+        [(-min_y, max_x), 'line'],
         [(-tangent_y, max_x), 'offcurve'],
-        [(-midarc_y, midarc_x), 'qcurve'],
         [(-max_y, tangent_x), 'offcurve'],
-        [(-max_y, min_x), 'qcurve'],
-        [(-max_y, -min_x), 'qcurve'],
+        [(-max_y, min_x), 'curve'],
+        [(-max_y, -min_x), 'line'],
         [(-max_y, -tangent_x), 'offcurve'],
-        [(-midarc_y, -midarc_x), 'qcurve'],
         [(-tangent_y, -max_x), 'offcurve'],
-        [(-min_y, -max_x), 'qcurve'],
-        [(min_y, -max_x), 'qcurve'],
+        [(-min_y, -max_x), 'curve'],
+        [(min_y, -max_x), 'line'],
         [(tangent_y, -max_x), 'offcurve'],
-        [(midarc_y, -midarc_x), 'qcurve'],
         [(max_y, -tangent_x), 'offcurve'],
-        [(max_y, -min_x), 'qcurve'],
-        [(max_y, min_x), 'qcurve'],
+        [(max_y, -min_x), 'curve'],
+        [(max_y, min_x), 'line'],
         [(max_y, tangent_x), 'offcurve'],
-        [(midarc_y, midarc_x), 'qcurve'],
         [(tangent_y, max_x), 'offcurve'],
     ]
+
+    # Quadratic curve
+    # midarc = radius * math.cos(math.radians(45))
+    # tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
+    # max_x = unit + pixel_bleed * (2 * pixel_unit - unit)
+    # max_y = unit
+    # min_x = max_x - radius
+    # min_y = max_y - radius
+    # tangent_x = min_x + tangent
+    # tangent_y = min_y + tangent
+    # midarc_x = min_x + midarc
+    # midarc_y = min_y + midarc
+
+    # return [
+    #     [(min_y, max_x), 'qcurve'],
+    #     [(-min_y, max_x), 'line'],
+    #     [(-tangent_y, max_x), 'offcurve'],
+    #     [(-midarc_y, midarc_x), 'qcurve'],
+    #     [(-max_y, tangent_x), 'offcurve'],
+    #     [(-max_y, min_x), 'qcurve'],
+    #     [(-max_y, -min_x), 'line'],
+    #     [(-max_y, -tangent_x), 'offcurve'],
+    #     [(-midarc_y, -midarc_x), 'qcurve'],
+    #     [(-tangent_y, -max_x), 'offcurve'],
+    #     [(-min_y, -max_x), 'qcurve'],
+    #     [(min_y, -max_x), 'line'],
+    #     [(tangent_y, -max_x), 'offcurve'],
+    #     [(midarc_y, -midarc_x), 'qcurve'],
+    #     [(max_y, -tangent_x), 'offcurve'],
+    #     [(max_y, -min_x), 'qcurve'],
+    #     [(max_y, min_x), 'line'],
+    #     [(max_y, tangent_x), 'offcurve'],
+    #     [(midarc_y, midarc_x), 'qcurve'],
+    #     [(tangent_y, max_x), 'offcurve'],
+    # ]
 
 
 def add_ufo_bitmap(ufo_glyph,
@@ -968,7 +1000,7 @@ def add_ufo_bitmap(ufo_glyph,
     bdf_glyph_offset = bdf_glyph['offset']
 
     points = get_points(units_per_pixel,
-                        bdf_font['pixel_size'],
+                        bdf_font['pixel_volume'],
                         bdf_font['pixel_roundness'],
                         bdf_font['pixel_bleed'])
 
@@ -1178,52 +1210,53 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
     features.statements.append(topmarks_definition)
 
     # Mark feature
-    ccmp_lookup1 = fontTools.feaLib.ast.LookupBlock('marklookup')
+    if len(mark_map) > 0 and len(base_map) > 0:
+        mark_lookup = fontTools.feaLib.ast.LookupBlock('marklookup')
 
-    for anchor_name_offset in mark_map:
-        anchor_name, anchor_offset = anchor_name_offset
-        component_names = mark_map[anchor_name_offset]
-
-        glyphs = fontTools.feaLib.ast.GlyphClass()
-        for component_name in component_names:
-            glyphs.append(fontTools.feaLib.ast.GlyphName(component_name))
-
-        mark_class = fontTools.feaLib.ast.MarkClassDefinition(
-            fontTools.feaLib.ast.MarkClass(anchor_name),
-            fontTools.feaLib.ast.Anchor(
-                anchor_offset[1] * units_per_pixel,
-                anchor_offset[0] * units_per_pixel),
-            glyphs
-        )
-        ccmp_lookup1.statements.append(mark_class)
-
-    for anchor_name_offsets, component_names in base_map.items():
-        glyphs = fontTools.feaLib.ast.GlyphClass()
-        for component_name in component_names:
-            glyphs.append(fontTools.feaLib.ast.GlyphName(component_name))
-
-        marks = []
-        for anchor_name_offset in anchor_name_offsets:
+        for anchor_name_offset in mark_map:
             anchor_name, anchor_offset = anchor_name_offset
-            marks.append((
+            component_names = mark_map[anchor_name_offset]
+
+            glyphs = fontTools.feaLib.ast.GlyphClass()
+            for component_name in component_names:
+                glyphs.append(fontTools.feaLib.ast.GlyphName(component_name))
+
+            mark_class = fontTools.feaLib.ast.MarkClassDefinition(
+                fontTools.feaLib.ast.MarkClass(anchor_name),
                 fontTools.feaLib.ast.Anchor(
                     anchor_offset[1] * units_per_pixel,
                     anchor_offset[0] * units_per_pixel),
-                fontTools.feaLib.ast.MarkClass(anchor_name)
-            ))
+                glyphs
+            )
+            mark_lookup.statements.append(mark_class)
 
-        base_class = fontTools.feaLib.ast.MarkBasePosStatement(
-            glyphs,
-            marks)
-        ccmp_lookup1.statements.append(base_class)
+        for anchor_name_offsets, component_names in base_map.items():
+            glyphs = fontTools.feaLib.ast.GlyphClass()
+            for component_name in component_names:
+                glyphs.append(fontTools.feaLib.ast.GlyphName(component_name))
 
-    features.statements.append(ccmp_lookup1)
+            marks = []
+            for anchor_name_offset in anchor_name_offsets:
+                anchor_name, anchor_offset = anchor_name_offset
+                marks.append((
+                    fontTools.feaLib.ast.Anchor(
+                        anchor_offset[1] * units_per_pixel,
+                        anchor_offset[0] * units_per_pixel),
+                    fontTools.feaLib.ast.MarkClass(anchor_name)
+                ))
 
-    mark_block = fontTools.feaLib.ast.FeatureBlock('mark')
-    mark_block.statements.append(
-        fontTools.feaLib.ast.LookupReferenceStatement(ccmp_lookup1))
+            base_class = fontTools.feaLib.ast.MarkBasePosStatement(
+                glyphs,
+                marks)
+            mark_lookup.statements.append(base_class)
 
-    features.statements.append(mark_block)
+        features.statements.append(mark_lookup)
+
+        mark_block = fontTools.feaLib.ast.FeatureBlock('mark')
+        mark_block.statements.append(
+            fontTools.feaLib.ast.LookupReferenceStatement(mark_lookup))
+
+        features.statements.append(mark_block)
 
     # GDEF table
     allmarks_name = fontTools.feaLib.ast.GlyphClassName(allmarks_definition)
@@ -1270,15 +1303,19 @@ def add_ufo_glyphs(ufo_font, bdf_font):
 
 def get_designspace_instance(family_name,
                              style_name,
-                             size,
+                             volume,
                              roundness,
                              bleed):
+    font_name = family_name + ' ' + style_name
+    file_name = font_name.replace(' ', '-') + '.ufo'
+
     return fontTools.designspaceLib.InstanceDescriptor(
-        name=f'{family_name} {style_name}',
+        filename=file_name,
+        name=font_name,
         familyName=family_name,
         styleName=style_name,
         location={
-            'Size': size,
+            'Volume': volume,
             'Roundness': roundness,
             'Bleed': bleed,
         }
@@ -1296,17 +1333,15 @@ def write_designspace(path, bdf_font):
     doc = fontTools.designspaceLib.DesignSpaceDocument()
 
     doc.addAxisDescriptor(
-        tag="SIZE",
-        name="Size",
-        minimum=1,
+        tag="VOLM",
+        name="Volume",
+        minimum=10,
         maximum=100,
-        default=94,
-        # Maps surface x^2 to pixel size x:
-        map=[(0, 0), (10.89, 33), (44.89, 67), (100, 100)]
+        default=100,
     )
 
     doc.addAxisDescriptor(
-        tag="ROUN",
+        tag="ROND",
         name="Roundness",
         minimum=0,
         maximum=100,
@@ -1314,7 +1349,7 @@ def write_designspace(path, bdf_font):
     )
 
     doc.addAxisDescriptor(
-        tag="BLEE",
+        tag="BLED",
         name="Bleed",
         minimum=0,
         maximum=100,
@@ -1332,17 +1367,19 @@ def write_designspace(path, bdf_font):
             familyName=family_name,
             styleName=ufo_style_name,
             location={
-                'Size': configuration[1],
-                'Roundness': configuration[2],
-                'Bleed': configuration[3],
+                'Volume': int(100 * configuration[1]),
+                'Roundness': int(100 * configuration[2]),
+                'Bleed': int(100 * configuration[3]),
             })
 
     doc.addInstance(
-        get_designspace_instance(family_name, style_name + ' LCD', 94, 0, 0))
+        get_designspace_instance(family_name, style_name + '', 100, 0, 0))
     doc.addInstance(
-        get_designspace_instance(family_name, style_name + ' DotMatrix', 80, 80, 100))
+        get_designspace_instance(family_name, style_name + ' LCD', 85, 0, 0))
     doc.addInstance(
-        get_designspace_instance(family_name, style_name + ' CRT', 80, 100, 0))
+        get_designspace_instance(family_name, style_name + ' DotMatrix', 85, 80, 0))
+    doc.addInstance(
+        get_designspace_instance(family_name, style_name + ' CRT', 70, 60, 60))
 
     doc.write(designspace_path)
 
@@ -1351,7 +1388,11 @@ def write_designspace(path, bdf_font):
 
     config = open(config_path, 'wt')
     config.write('sources:\n')
-    config.write('  - ' + designspace_filename)
+    config.write('  - ' + designspace_filename + '\n')
+    config.write('axisOrder:\n')
+    config.write('  - VOLM\n')
+    config.write('  - ROND\n')
+    config.write('  - BLED\n')
     config.close()
 
 
@@ -1372,83 +1413,62 @@ def main():
                         type=int,
                         help='sets the units per em value')
     parser.add_argument('--codepoints',
-                        dest='codepoint_subset',
                         help='specifies a comma-separated subset of Unicode characters to convert (e.g. 0x0-0x2000,0x20ee).')
 
     parser.add_argument('--family-name',
-                        dest='family_name',
                         help='overrides the font family name string')
     parser.add_argument('--font-version',
-                        dest='font_version',
                         help='overrides the font version string')
     parser.add_argument('--weight',
-                        dest='weight',
                         type=int,
                         choices=[100, 200, 300, 400,
                                  500, 600, 700, 800, 900],
                         help='overrides the font weight ("Regular": 400)')
     parser.add_argument('--slope',
-                        dest='slope',
                         choices=['', 'Italic'],
                         help='overrides the font slope')
     parser.add_argument('--width-class',
-                        dest='width_class',
                         type=int,
                         choices=[1, 2, 3, 4, 5, 6, 7, 8, 9],
                         help='overrides the font width class ("Normal": 5)')
 
     parser.add_argument('--copyright',
-                        dest='copyright',
                         help='overrides the font copyright string')
     parser.add_argument('--designer',
-                        dest='designer',
                         help='overrides the font designer string')
     parser.add_argument('--designer-url',
-                        dest='designer_url',
                         help='overrides the font designer URL string')
     parser.add_argument('--manufacturer',
-                        dest='manufacturer',
                         help='overrides the font manufacturer string')
     parser.add_argument('--manufacturer-url',
-                        dest='manufacturer_url',
                         help='overrides the font manufacturer URL string')
     parser.add_argument('--license',
-                        dest='license',
                         help='overrides the font license string')
     parser.add_argument('--license-url',
-                        dest='license_url',
                         help='overrides the font license URL string')
 
     parser.add_argument('--ascent',
-                        dest='ascent',
                         type=int,
                         help='overrides the font ascent in pixels (baseline to top of line)')
     parser.add_argument('--descent',
-                        dest='descent',
                         type=int,
                         help='overrides the font descent in pixels (baseline to bottom of line)')
     parser.add_argument('--cap-height',
-                        dest='cap_height',
                         type=int,
                         help='overrides the font cap height in pixels (typically of uppercase A)')
     parser.add_argument('--x-height',
-                        dest='x_height',
                         type=int,
                         help='overrides the font x height in pixels (typically of lowercase x)')
     parser.add_argument('--strikeout-position',
-                        dest='strikeout_position',
                         type=int,
                         help='sets the font strikeout position in pixels (top, relative to the baseline)')
     parser.add_argument('--strikeout-thickness',
-                        dest='strikeout_thickness',
                         type=int,
                         help='sets the font strikeout width in pixels')
     parser.add_argument('--underline-position',
-                        dest='underline_position',
                         type=int,
                         help='sets the font underline position in pixels (top, relative to the baseline)')
     parser.add_argument('--underline-thickness',
-                        dest='underline_thickness',
                         type=int,
                         help='sets the font underline width in pixels')
 
@@ -1466,8 +1486,8 @@ def main():
 
     if args.units_per_em != None:
         config['units_per_em'] = args.units_per_em
-    if args.codepoint_subset != None:
-        config['codepoint_subset'] = args.codepoint_subset
+    if args.codepoints != None:
+        config['codepoint_subset'] = args.codepoints
 
     if args.family_name != None:
         config['family_name'] = args.family_name
@@ -1518,30 +1538,29 @@ def main():
     print('Preparing UFO designspace folder...')
     os.makedirs(args.output, exist_ok=True)
 
-    designspace_configurations = []
     for configuration in designspace_configurations:
         style_name = configuration[0]
         ufo_font_name = bdf_font['font_name'] + ' ' + style_name
-        ufo_file_name = ufo_font_name.replace(' ', '-')
+        ufo_file_name = ufo_font_name.replace(' ', '-') + '.ufo'
 
-        bdf_font['pixel_size'] = configuration[1]
+        bdf_font['pixel_volume'] = configuration[1]
         bdf_font['pixel_roundness'] = configuration[2]
         bdf_font['pixel_bleed'] = configuration[3]
 
-        print(f'Building {ufo_font_name}...')
+        print(f'Building {ufo_file_name}...')
 
         ufo_font = ufoLib2.Font()
         set_ufo_info(ufo_font, bdf_font)
 
         add_ufo_glyphs(ufo_font, bdf_font)
 
-        output_path = args.output + '/' + ufo_file_name + '.ufo'
+        output_path = args.output + '/' + ufo_file_name
 
         if os.path.exists(output_path):
             shutil.rmtree(output_path)
         ufo_font.write(fontTools.ufoLib.UFOWriter(output_path))
 
-    print('Building designspace file...')
+    print(f'Building designspace...')
     write_designspace(args.output, bdf_font)
 
     print('Done.')
