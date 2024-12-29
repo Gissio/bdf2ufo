@@ -13,7 +13,7 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 
 ## Examples
 
-* Check the [fonts](fonts) folder!
+* Check [Tiny5](https://github.com/Gissio/font_tiny5)!
 
 ## Building a font
 
