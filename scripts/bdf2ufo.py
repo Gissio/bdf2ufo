@@ -30,7 +30,7 @@ import ufoLib2.objects.anchor
 # Definitions
 
 log_level = 1
-bdf2ufo_version = '0.9.0'
+bdf2ufo_version = '1.0'
 
 weight_from_weight_name = {
     'thin': 100,
