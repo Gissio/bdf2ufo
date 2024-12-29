@@ -27,7 +27,7 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 
 6. Compile the .ufo designspace:
 
-        gftools builder config.yaml
+        gftools builder [parh-of-designspace]/config.yaml
 
 ## Additional resources
 
