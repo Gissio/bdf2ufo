@@ -530,8 +530,8 @@ def load_bdf(path, config):
         subscript_y = get_bdf_property(
             bdf, 'SUBSCRIPT_Y', None)
 
-        pixel_advance_x = 1
-        pixel_advance_y = 1
+        grid_scale_x = 1
+        grid_scale_y = 1
         units_per_em = 1024
 
         if 'family_name' in config:
@@ -580,10 +580,10 @@ def load_bdf(path, config):
             strikeout_thickness = config['strikeout_thickness']
         if 'strikeout_thickness' in config:
             strikeout_thickness = config['strikeout_thickness']
-        if 'pixel_advance_x' in config:
-            pixel_advance_x = config['pixel_advance_x']
-        if 'pixel_advance_x' in config:
-            pixel_advance_y = config['pixel_advance_y']
+        if 'grid_scale_x' in config:
+            grid_scale_x = config['grid_scale_x']
+        if 'grid_scale_y' in config:
+            grid_scale_y = config['grid_scale_y']
         if 'units_per_em' in config:
             units_per_em = config['units_per_em']
 
@@ -601,10 +601,10 @@ def load_bdf(path, config):
             subscript_y = cap_height - subscript_size
 
         units_per_pixel = int(units_per_em / point_size)
-        units_per_pixel_advance_x = int(
-            pixel_advance_x * units_per_em / point_size)
-        units_per_pixel_advance_y = int(
-            pixel_advance_y * units_per_em / point_size)
+        units_per_grid_scale_x = int(
+            grid_scale_x * units_per_em / point_size)
+        units_per_grid_scale_y = int(
+            grid_scale_y * units_per_em / point_size)
 
         bdf_font = {}
         bdf_font['version'] = version
@@ -643,8 +643,8 @@ def load_bdf(path, config):
 
         bdf_font['units_per_em'] = units_per_em
         bdf_font['units_per_pixel'] = units_per_pixel
-        bdf_font['units_per_pixel_advance_x'] = units_per_pixel_advance_x
-        bdf_font['units_per_pixel_advance_y'] = units_per_pixel_advance_y
+        bdf_font['units_per_grid_scale_x'] = units_per_grid_scale_x
+        bdf_font['units_per_grid_scale_y'] = units_per_grid_scale_y
 
         bdf_font['glyphs'] = bdf_glyphs
         bdf_font['codepoints'] = bdf_codepoints
@@ -693,34 +693,34 @@ def set_ufo_info(ufo_font, bdf_font):
     unique_id = manufacturer + ': ' + font_name
 
     units_per_em = bdf_font['units_per_em']
-    units_per_pixel_advance_x = bdf_font['units_per_pixel_advance_x']
-    units_per_pixel_advance_y = bdf_font['units_per_pixel_advance_y']
+    units_per_grid_scale_x = bdf_font['units_per_grid_scale_x']
+    units_per_grid_scale_y = bdf_font['units_per_grid_scale_y']
 
-    line_ascender = bdf_font['ascent'] * units_per_pixel_advance_y
-    line_descender = -bdf_font['descent'] * units_per_pixel_advance_y
+    line_ascender = bdf_font['ascent'] * units_per_grid_scale_y
+    line_descender = -bdf_font['descent'] * units_per_grid_scale_y
     line_height = line_ascender - line_descender
     em_descender = line_descender - int((units_per_em - line_height) / 2)
     em_ascender = units_per_em + em_descender
     boundingbox_ascender = max(
-        bdf_font['boundingbox'][1][0] * units_per_pixel_advance_y, 0)
+        bdf_font['boundingbox'][1][0] * units_per_grid_scale_y, 0)
     boundingbox_descender = max(
-        -bdf_font['boundingbox'][0][0] * units_per_pixel_advance_y, 0)
-    cap_height = bdf_font['cap_height'] * units_per_pixel_advance_y
-    x_height = bdf_font['x_height'] * units_per_pixel_advance_y
+        -bdf_font['boundingbox'][0][0] * units_per_grid_scale_y, 0)
+    cap_height = bdf_font['cap_height'] * units_per_grid_scale_y
+    x_height = bdf_font['x_height'] * units_per_grid_scale_y
     underline_position = bdf_font['underline_position'] * \
-        units_per_pixel_advance_y
+        units_per_grid_scale_y
     underline_thickness = bdf_font['underline_thickness'] * \
-        units_per_pixel_advance_y
+        units_per_grid_scale_y
     strikeout_position = bdf_font['strikeout_position'] * \
-        units_per_pixel_advance_y
+        units_per_grid_scale_y
     strikeout_thickness = bdf_font['strikeout_thickness'] * \
-        units_per_pixel_advance_y
-    superscript_x = bdf_font['superscript_x'] * units_per_pixel_advance_x
-    superscript_y = bdf_font['superscript_y'] * units_per_pixel_advance_y
+        units_per_grid_scale_y
+    superscript_x = bdf_font['superscript_x'] * units_per_grid_scale_x
+    superscript_y = bdf_font['superscript_y'] * units_per_grid_scale_y
     superscript_size = int(
         bdf_font['superscript_size'] / bdf_font['cap_height'] * units_per_em)
-    subscript_x = bdf_font['subscript_x'] * units_per_pixel_advance_x
-    subscript_y = bdf_font['subscript_y'] * units_per_pixel_advance_y
+    subscript_x = bdf_font['subscript_x'] * units_per_grid_scale_x
+    subscript_y = bdf_font['subscript_y'] * units_per_grid_scale_y
     subscript_size = int(
         bdf_font['subscript_size'] / bdf_font['cap_height'] * units_per_em)
 
@@ -1016,8 +1016,8 @@ def add_ufo_bitmap(ufo_glyph,
                    bdf_font,
                    bdf_glyph):
     units_per_pixel = bdf_font['units_per_pixel']
-    units_per_pixel_advance_x = bdf_font['units_per_pixel_advance_x']
-    units_per_pixel_advance_y = bdf_font['units_per_pixel_advance_y']
+    units_per_grid_scale_x = bdf_font['units_per_grid_scale_x']
+    units_per_grid_scale_y = bdf_font['units_per_grid_scale_y']
 
     bdf_bitmap = bdf_glyph['bitmap']
     bdf_glyph_offset = bdf_glyph['offset']
@@ -1030,8 +1030,8 @@ def add_ufo_bitmap(ufo_glyph,
     for y in range(bdf_bitmap.shape[0]):
         for x in range(bdf_bitmap.shape[1]):
             if bdf_bitmap[y][x]:
-                ufo_y = units_per_pixel_advance_y * (bdf_glyph_offset[0] + y + 0.5)
-                ufo_x = units_per_pixel_advance_x * (bdf_glyph_offset[1] + x + 0.5)
+                ufo_y = units_per_grid_scale_y * (bdf_glyph_offset[0] + y + 0.5)
+                ufo_x = units_per_grid_scale_x * (bdf_glyph_offset[1] + x + 0.5)
 
                 ufo_points = []
                 for point_offset, point_type in points:
@@ -1048,8 +1048,8 @@ def add_ufo_bitmap(ufo_glyph,
 def add_ufo_components(ufo_glyph,
                        bdf_font,
                        components):
-    units_per_pixel_advance_x = bdf_font['units_per_pixel_advance_x']
-    units_per_pixel_advance_y = bdf_font['units_per_pixel_advance_y']
+    units_per_grid_scale_x = bdf_font['units_per_grid_scale_x']
+    units_per_grid_scale_y = bdf_font['units_per_grid_scale_y']
     bdf_glyphs = bdf_font['glyphs']
 
     for component in components:
@@ -1064,8 +1064,8 @@ def add_ufo_components(ufo_glyph,
         if delta != (0, 0):
             ufo_component.transformation = [
                 1, 0, 0, 1,
-                delta[1] * units_per_pixel_advance_x,
-                delta[0] * units_per_pixel_advance_y]
+                delta[1] * units_per_grid_scale_x,
+                delta[0] * units_per_grid_scale_y]
 
         ufo_glyph.components.append(ufo_component)
 
@@ -1155,8 +1155,8 @@ def add_anchors(anchors,
 
 
 def set_ufo_anchors(ufo_font, bdf_font, anchors):
-    units_per_pixel_advance_x = bdf_font['units_per_pixel_advance_x']
-    units_per_pixel_advance_y = bdf_font['units_per_pixel_advance_y']
+    units_per_grid_scale_x = bdf_font['units_per_grid_scale_x']
+    units_per_grid_scale_y = bdf_font['units_per_grid_scale_y']
     bdf_glyphs = bdf_font['glyphs']
     bdf_codepoints = bdf_font['codepoints']
 
@@ -1174,8 +1174,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
             anchor_offset = component_anchors[anchor_name]
 
             anchor = ufoLib2.objects.Anchor(
-                anchor_offset[1] * units_per_pixel_advance_x,
-                anchor_offset[0] * units_per_pixel_advance_y,
+                anchor_offset[1] * units_per_grid_scale_x,
+                anchor_offset[0] * units_per_grid_scale_y,
                 anchor_name)
 
             ufo_glyph.appendAnchor(anchor)
@@ -1249,8 +1249,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
             mark_class = fontTools.feaLib.ast.MarkClassDefinition(
                 fontTools.feaLib.ast.MarkClass(anchor_name),
                 fontTools.feaLib.ast.Anchor(
-                    anchor_offset[1] * units_per_pixel_advance_x,
-                    anchor_offset[0] * units_per_pixel_advance_y),
+                    anchor_offset[1] * units_per_grid_scale_x,
+                    anchor_offset[0] * units_per_grid_scale_y),
                 glyphs
             )
             mark_lookup.statements.append(mark_class)
@@ -1265,8 +1265,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
                 anchor_name, anchor_offset = anchor_name_offset
                 marks.append((
                     fontTools.feaLib.ast.Anchor(
-                        anchor_offset[1] * units_per_pixel_advance_x,
-                        anchor_offset[0] * units_per_pixel_advance_y),
+                        anchor_offset[1] * units_per_grid_scale_x,
+                        anchor_offset[0] * units_per_grid_scale_y),
                     fontTools.feaLib.ast.MarkClass(anchor_name)
                 ))
 
@@ -1299,7 +1299,7 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
 
 def add_ufo_glyphs(ufo_font, bdf_font):
     bdf_glyphs = bdf_font['glyphs']
-    units_per_pixel_advance_y = bdf_font['units_per_pixel_advance_y']
+    units_per_grid_scale_y = bdf_font['units_per_grid_scale_y']
 
     anchors = {}
 
@@ -1311,7 +1311,7 @@ def add_ufo_glyphs(ufo_font, bdf_font):
         ufo_glyph = ufo_font.newGlyph(composed_name)
         if composed_codepoint != 0:
             ufo_glyph.unicode = composed_codepoint
-        ufo_glyph.width = composed_advance * units_per_pixel_advance_y
+        ufo_glyph.width = composed_advance * units_per_grid_scale_y
 
         components = decompose_bdf_glyph(bdf_font, composed_name)
 
@@ -1496,12 +1496,12 @@ def main():
     parser.add_argument('--underline-thickness',
                         type=int,
                         help='sets the font underline width in pixels')
-    parser.add_argument('--pixel-advance-x',
-                        type=int,
-                        help='sets the x-axis pixel advance (default: 1)')
-    parser.add_argument('--pixel-advance-y',
-                        type=int,
-                        help='sets the y-axis pixel advance (default: 1)')
+    parser.add_argument('--grid-scale-x',
+                        type=float,
+                        help='sets the x-axis pixel grid scale (default: 1)')
+    parser.add_argument('--grid-scale-y',
+                        type=float,
+                        help='sets the y-axis pixel grid scale (default: 1)')
 
     parser.add_argument('input',
                         help='the .bdf file to be converted')
@@ -1562,10 +1562,10 @@ def main():
         config['underline_position'] = args.underline_position
     if args.underline_thickness != None:
         config['underline_thickness'] = args.underline_thickness
-    if args.pixel_advance_x != None:
-        config['pixel-advance-x'] = args.pixel_advance_x
-    if args.pixel_advance_y != None:
-        config['pixel-advance-y'] = args.pixel_advance_y
+    if args.grid_scale_x != None:
+        config['grid_scale_x'] = args.grid_scale_x
+    if args.grid_scale_y != None:
+        config['grid_scale_y'] = args.grid_scale_y
 
     print('Loading BDF font...')
     bdf_font = load_bdf(args.input, config)
