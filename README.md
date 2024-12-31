@@ -7,7 +7,7 @@ Converts .bdf pixel fonts to .ufo static and variable vector fonts.
 ## Features
 
 * Automatically creates static and variable fonts.
-* Supports three variable axes: pixel volume, roundness and bleed, simulating the appearance of LCD screens, CRT monitors and dot matrix printouts.
+* Supports five variable axes for controlling the pixels: element size (ESIZ), roundness (ROUND), bleed (BLED), horizontal element spacing (ESPX) and vertical element spacing (ESPY). These allow to mimic the visual characteristics of LCD screens, CRT monitors and dot matrix printouts.
 * Automatically decomposes glyphs, reducing font size.
 * Automatically adds anchors.
 
