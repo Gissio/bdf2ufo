@@ -2,45 +2,66 @@
 
 # bdf2ufo
 
-Converts .bdf pixel fonts to .ufo static and variable vector fonts.
+Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 
 ## Features
 
-* Automatically creates static and variable fonts.
-* Supports five variable axes for controlling the pixels: element size (ESIZ), roundness (ROND), bleed (BLED), horizontal element spacing (XESP) and element jitter (EJIT). These allow to mimic the visual characteristics of LCD screens, CRT monitors and dot matrix printouts.
-* Composes pixels from glyphs, reducing font size.
-* Automatically decomposes glyphs, reducing font size.
-* Automatically adds base-to-mark anchors.
+* **Automated Font Generation**: Creates both static and variable fonts.
+* **Variable Axes Support**: Includes five axes for pixel manipulation:
+  * **Element size (ESIZ)**
+  * **Roundness (ROND)**
+  * **Bleed (BLED)**
+  * **horizontal element spacing (XESP)**
+  * **Element Jitter (EJIT)**
+  
+  These allow you to simulate the visual characteristics of LCD screens, CRT monitors and dot matrix printouts.
+
+* **Glyph Composition**: Reduces font size by composing pixels from a pixel glyph.
+* **Glyph Decomposition**: Automatically decomposes composed characters for further size reduction.
+* **Anchor Creation**: Adds base-to-mark anchors automatically.
 
 ## Examples
 
-* Check out [Tiny5](https://github.com/Gissio/font_tiny5)!
+* Check out **[Tiny5](https://github.com/Gissio/font_tiny5)**!
 
 ## Building a font
 
-1. If your source font is in .ttf or .otf vector format, convert it first to the .bdf pixel format. You can use the `otf2bdf` converter available at http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/. Under macOS, install with [Homebrew](https://brew.sh/). Under Ubuntu, install with this command: `sudo apt install otf2bdf`.
-2. Make sure [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/) are installed.
-3. Install the bdf2ufo requirements: `pip install -r requirements.txt`
-4. Create an empty folder for storing the .ufo masters.
-5. Run bdf2ufo with the appropriate options. For usage help, try:
+1. **Convert Source Font**
+   - If your font is in `.ttf` or `.otf`, first convert to `.bdf`. Use `otf2bdf`:
+     - macOS: Install via [Homebrew](https://brew.sh/): `brew install otf2bdf`
+     - Ubuntu: `sudo apt install otf2bdf`
+     - Windows: Download from [here](http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/)
+
+2. **Setup Environment**:
+   - Ensure [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/) are installed.
+
+3. **Install Dependencies**:
+   - Run `pip install -r requirements.txt`
+
+4. **Prepare Directory**:
+   - Create an empty folder to hold your `.ufo` master files.
+
+5. **Run bdf2ufo**:
+   - For usage help, execute:
 
         python tools/bdf2ufo.py --help
 
-6. Compile the .ufo files:
+6. **Compile .ufo files**:
+   - Use `gftools`:
 
         gftools builder [masters-path]/[family-name]-config.yaml
 
 ## Tips
 
-* Use the --verbose parameter to get extended info of the conversion.
-* Use `--glyph-offset-x` to center the glyphs. Fractional values are allowed.
-* The EJIT (element jitter) value specifies the jitter's variance in element units (uses a gaussian distribution function). Good values are around 0.05.
-* To compile a static font, do not use `--variable-axis` nor `--variable-instance`; specify the axes' values with `--static-axes`.
-* Undefined combining characters (0x300-0x36f) are automatically copied from other similar defined characters.
-* For now, anchor marks are assigned at the center, bottom point of the combining glyphs.
+- **Verbose Output**: Use `--verbose` for detailed conversion logs.
+- **Glyph Alignment**: Use `--glyph-offset-x` for precise glyph centering; supports fractional values.
+- **Jitter Effect**: Set `EJIT` around 0.05 for a subtle jitter using a Gaussian distribution.
+- **Static Fonts**: Omit `--variable-axis` and `--variable-instance`; use `--static-axes` to define axis values.
+- **Combining Characters**: Undefined characters (U+0300 to U+036F) are auto-copied from similar defined glyphs.
+- **Anchor Positioning**: Currently, anchors are placed at the glyph's center-bottom.
 
-## Additional resources
+## Additional Resources
 
-* [Bits'N'Picas](https://github.com/kreativekorp/bitsnpicas): bitmap font editor
-* [FontDrop!](https://fontdrop.info/): online glyph viewer
-* [Oh My Glyph](https://www.ohmyglyph.com/): online glyph copy+paste
+- **[Bits'N'Picas](https://github.com/kreativekorp/bitsnpicas)**: A bitmap font editor.
+- **[FontDrop!](https://fontdrop.info/)**: An online glyph viewer.
+- **[Oh My Glyph](https://www.ohmyglyph.com/)**: Copy and paste glyphs online.
