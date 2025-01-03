@@ -633,8 +633,8 @@ def load_bdf(config):
         for axis in location:
             bdf_font.location[axis] = location[axis]
 
-        bdf_font.units_per_element_y = bdf_font.units_per_em / \
-            (bdf_font.ascent - bdf_font.descent)
+        bdf_font.units_per_element_y = int(bdf_font.units_per_em /
+                                           (bdf_font.ascent - bdf_font.descent))
 
         bdf_font.custom_style_name = config.custom_style_name
 
@@ -680,8 +680,8 @@ def get_file_name(bdf_font, sub_style_name=''):
 
 def set_ufo_info(ufo_font, bdf_font):
     # Ascenders and descenders
-    line_ascender = int(bdf_font.ascent * bdf_font.units_per_element_y)
-    line_descender = int(bdf_font.descent * bdf_font.units_per_element_y)
+    line_ascender = bdf_font.ascent * bdf_font.units_per_element_y
+    line_descender = bdf_font.descent * bdf_font.units_per_element_y
     line_height = line_ascender - line_descender
 
     em_descender = line_descender - \
@@ -708,7 +708,8 @@ def set_ufo_info(ufo_font, bdf_font):
     if len(version_number_components) == 2:
         try:
             version_number_components = (
-                int(version_number_components[0]), int(version_number_components[1]))
+                int(version_number_components[0]),
+                int(version_number_components[1]))
         except:
             pass
 
@@ -722,10 +723,8 @@ def set_ufo_info(ufo_font, bdf_font):
     ufo_info.copyright = bdf_font.copyright
     ufo_info.unitsPerEm = bdf_font.units_per_em
     ufo_info.descender = em_descender
-    ufo_info.xHeight = int(
-        bdf_font.x_height * bdf_font.units_per_element_y)
-    ufo_info.capHeight = int(
-        bdf_font.cap_height * bdf_font.units_per_element_y)
+    ufo_info.xHeight = bdf_font.x_height * bdf_font.units_per_element_y
+    ufo_info.capHeight = bdf_font.cap_height * bdf_font.units_per_element_y
     ufo_info.ascender = em_ascender
 
     ufo_info.guidelines = []
@@ -748,37 +747,118 @@ def set_ufo_info(ufo_font, bdf_font):
     ufo_info.openTypeOS2TypoAscender = ufo_info.openTypeHheaAscender
     ufo_info.openTypeOS2TypoDescender = ufo_info.openTypeHheaDescender
     ufo_info.openTypeOS2TypoLineGap = ufo_info.openTypeHheaLineGap
-    ufo_info.openTypeOS2WinAscent = max(int(
-        bdf_font.boundingbox[1][0] * bdf_font.units_per_element_y), 0)
-    ufo_info.openTypeOS2WinDescent = max(int(
-        -bdf_font.boundingbox[0][0] * bdf_font.units_per_element_y), 0)
-    ufo_info.openTypeOS2SubscriptXSize = int(
-        bdf_font.subscript_size * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SubscriptYSize = int(
-        bdf_font.subscript_size * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SubscriptXOffset = int(
-        bdf_font.subscript_x * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SubscriptYOffset = int(
-        bdf_font.subscript_y * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SuperscriptXSize = int(
-        bdf_font.superscript_size * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SuperscriptYSize = int(
-        bdf_font.superscript_size * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SuperscriptXOffset = int(
-        bdf_font.superscript_x * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2SuperscriptYOffset = int(
-        bdf_font.superscript_y * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2StrikeoutSize = int(
-        bdf_font.strikeout_thickness * bdf_font.units_per_element_y)
-    ufo_info.openTypeOS2StrikeoutPosition = int(
-        bdf_font.strikeout_position * bdf_font.units_per_element_y)
+    ufo_info.openTypeOS2WinAscent = max(
+        bdf_font.boundingbox[1][0] * bdf_font.units_per_element_y, 0)
+    ufo_info.openTypeOS2WinDescent = max(
+        -bdf_font.boundingbox[0][0] * bdf_font.units_per_element_y, 0)
+    ufo_info.openTypeOS2SubscriptXSize = bdf_font.subscript_size * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SubscriptYSize = bdf_font.subscript_size * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SubscriptXOffset = bdf_font.subscript_x * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SubscriptYOffset = bdf_font.subscript_y * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SuperscriptXSize = bdf_font.superscript_size * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SuperscriptYSize = bdf_font.superscript_size * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SuperscriptXOffset = bdf_font.superscript_x * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2SuperscriptYOffset = bdf_font.superscript_y * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2StrikeoutSize = bdf_font.strikeout_thickness * \
+        bdf_font.units_per_element_y
+    ufo_info.openTypeOS2StrikeoutPosition = bdf_font.strikeout_position * \
+        bdf_font.units_per_element_y
 
-    ufo_info.postscriptUnderlineThickness = int(
-        bdf_font.underline_thickness * bdf_font.units_per_element_y)
-    ufo_info.postscriptUnderlinePosition = int(
-        bdf_font.underline_position * bdf_font.units_per_element_y)
+    ufo_info.postscriptUnderlineThickness = bdf_font.underline_thickness * \
+        bdf_font.units_per_element_y
+    ufo_info.postscriptUnderlinePosition = bdf_font.underline_position * \
+        bdf_font.units_per_element_y
 
-    ufo_info = ufoLib2.Font().info
+
+def add_element_glyph(ufo_font, bdf_font):
+    units_per_pixel = bdf_font.location['ESIZ'] * bdf_font.units_per_element_y
+    unit = units_per_pixel / 2
+    radius = bdf_font.location['ROND'] * unit
+
+    # # Cubic curves
+    tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
+    max_x = unit + bdf_font.location['BLED'] * (units_per_pixel - unit)
+    max_y = unit
+    min_x = max_x - radius
+    min_y = max_y - radius
+    tangent_x = min_x + tangent
+    tangent_y = min_y + tangent
+
+    element_points = [
+        [(min_y, max_x), 'curve'],
+        [(-min_y, max_x), 'line'],
+        [(-tangent_y, max_x), 'offcurve'],
+        [(-max_y, tangent_x), 'offcurve'],
+        [(-max_y, min_x), 'curve'],
+        [(-max_y, -min_x), 'line'],
+        [(-max_y, -tangent_x), 'offcurve'],
+        [(-tangent_y, -max_x), 'offcurve'],
+        [(-min_y, -max_x), 'curve'],
+        [(min_y, -max_x), 'line'],
+        [(tangent_y, -max_x), 'offcurve'],
+        [(max_y, -tangent_x), 'offcurve'],
+        [(max_y, -min_x), 'curve'],
+        [(max_y, min_x), 'line'],
+        [(max_y, tangent_x), 'offcurve'],
+        [(tangent_y, max_x), 'offcurve'],
+    ]
+
+    # Quadratic curve
+    # midarc = radius * math.cos(math.radians(45))
+    # tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
+    # max_x = unit + bdf_font.location['BLED'] * (2 * units_per_pixel - unit)
+    # max_y = unit
+    # min_x = max_x - radius
+    # min_y = max_y - radius
+    # tangent_x = min_x + tangent
+    # tangent_y = min_y + tangent
+    # midarc_x = min_x + midarc
+    # midarc_y = min_y + midarc
+
+    # element_points = [
+    #     [(min_y, max_x), 'qcurve'],
+    #     [(-min_y, max_x), 'line'],
+    #     [(-tangent_y, max_x), 'offcurve'],
+    #     [(-midarc_y, midarc_x), 'qcurve'],
+    #     [(-max_y, tangent_x), 'offcurve'],
+    #     [(-max_y, min_x), 'qcurve'],
+    #     [(-max_y, -min_x), 'line'],
+    #     [(-max_y, -tangent_x), 'offcurve'],
+    #     [(-midarc_y, -midarc_x), 'qcurve'],
+    #     [(-tangent_y, -max_x), 'offcurve'],
+    #     [(-min_y, -max_x), 'qcurve'],
+    #     [(min_y, -max_x), 'line'],
+    #     [(tangent_y, -max_x), 'offcurve'],
+    #     [(midarc_y, -midarc_x), 'qcurve'],
+    #     [(max_y, -tangent_x), 'offcurve'],
+    #     [(max_y, -min_x), 'qcurve'],
+    #     [(max_y, min_x), 'line'],
+    #     [(max_y, tangent_x), 'offcurve'],
+    #     [(midarc_y, midarc_x), 'qcurve'],
+    #     [(tangent_y, max_x), 'offcurve'],
+    # ]
+
+    ufo_points = []
+    for point_offset, point_type in element_points:
+        ufo_points.append(
+            ufoLib2.objects.Point(
+                point_offset[1],
+                point_offset[0],
+                point_type)
+        )
+
+    ufo_contour = ufoLib2.objects.Contour(ufo_points)
+
+    ufo_glyph = ufo_font.newGlyph('_')
+    ufo_glyph.appendContour(ufo_contour)
 
 
 def paint_bdf_glyph(composed_bitmap,
@@ -927,75 +1007,6 @@ def decompose_bdf_glyph(bdf_font, composed_name):
         return components
 
 
-def get_element_points(bdf_font):
-    units_per_pixel = bdf_font.location['ESIZ'] * bdf_font.units_per_element_y
-    unit = units_per_pixel / 2
-    radius = bdf_font.location['ROND'] * unit
-
-    # # Cubic curves
-    tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
-    max_x = unit + bdf_font.location['BLED'] * (units_per_pixel - unit)
-    max_y = unit
-    min_x = max_x - radius
-    min_y = max_y - radius
-    tangent_x = min_x + tangent
-    tangent_y = min_y + tangent
-
-    return [
-        [(min_y, max_x), 'curve'],
-        [(-min_y, max_x), 'line'],
-        [(-tangent_y, max_x), 'offcurve'],
-        [(-max_y, tangent_x), 'offcurve'],
-        [(-max_y, min_x), 'curve'],
-        [(-max_y, -min_x), 'line'],
-        [(-max_y, -tangent_x), 'offcurve'],
-        [(-tangent_y, -max_x), 'offcurve'],
-        [(-min_y, -max_x), 'curve'],
-        [(min_y, -max_x), 'line'],
-        [(tangent_y, -max_x), 'offcurve'],
-        [(max_y, -tangent_x), 'offcurve'],
-        [(max_y, -min_x), 'curve'],
-        [(max_y, min_x), 'line'],
-        [(max_y, tangent_x), 'offcurve'],
-        [(tangent_y, max_x), 'offcurve'],
-    ]
-
-    # Quadratic curve
-    # midarc = radius * math.cos(math.radians(45))
-    # tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
-    # max_x = unit + bdf_font.location['BLED'] * (2 * units_per_pixel - unit)
-    # max_y = unit
-    # min_x = max_x - radius
-    # min_y = max_y - radius
-    # tangent_x = min_x + tangent
-    # tangent_y = min_y + tangent
-    # midarc_x = min_x + midarc
-    # midarc_y = min_y + midarc
-
-    # return [
-    #     [(min_y, max_x), 'qcurve'],
-    #     [(-min_y, max_x), 'line'],
-    #     [(-tangent_y, max_x), 'offcurve'],
-    #     [(-midarc_y, midarc_x), 'qcurve'],
-    #     [(-max_y, tangent_x), 'offcurve'],
-    #     [(-max_y, min_x), 'qcurve'],
-    #     [(-max_y, -min_x), 'line'],
-    #     [(-max_y, -tangent_x), 'offcurve'],
-    #     [(-midarc_y, -midarc_x), 'qcurve'],
-    #     [(-tangent_y, -max_x), 'offcurve'],
-    #     [(-min_y, -max_x), 'qcurve'],
-    #     [(min_y, -max_x), 'line'],
-    #     [(tangent_y, -max_x), 'offcurve'],
-    #     [(midarc_y, -midarc_x), 'qcurve'],
-    #     [(max_y, -tangent_x), 'offcurve'],
-    #     [(max_y, -min_x), 'qcurve'],
-    #     [(max_y, min_x), 'line'],
-    #     [(max_y, tangent_x), 'offcurve'],
-    #     [(midarc_y, midarc_x), 'qcurve'],
-    #     [(tangent_y, max_x), 'offcurve'],
-    # ]
-
-
 def get_random_offset(bdf_font):
     while True:
         value = random.gauss(0, bdf_font.location['EJIT'])
@@ -1011,27 +1022,22 @@ def add_ufo_bitmap(ufo_glyph,
                    bdf_glyph):
     units_per_element_x = get_units_per_element_x(bdf_font)
 
-    element_points = get_element_points(bdf_font)
-
     for y in range(bdf_glyph.bitmap.shape[0]):
         for x in range(bdf_glyph.bitmap.shape[1]):
             if bdf_glyph.bitmap[y][x]:
-                ufo_y = (bdf_glyph.offset[0] + y + 0.5) * bdf_font.units_per_element_y +\
-                    get_random_offset(bdf_font)
-                ufo_x = (bdf_glyph.offset[1] + x + 0.5) * units_per_element_x +\
-                    get_random_offset(bdf_font)
+                ufo_y = (bdf_glyph.offset[0] + y + 0.5) * \
+                    bdf_font.units_per_element_y + get_random_offset(bdf_font)
+                ufo_x = (bdf_font.glyph_offset_x +
+                         bdf_glyph.offset[1] + x + 0.5) * \
+                    units_per_element_x + get_random_offset(bdf_font)
 
-                ufo_points = []
-                for point_offset, point_type in element_points:
-                    ufo_points.append(
-                        ufoLib2.objects.Point(
-                            int(ufo_x + point_offset[1]),
-                            int(ufo_y + point_offset[0]),
-                            point_type)
-                    )
+                ufo_component = ufoLib2.objects.Component('_')
+                ufo_component.transformation = [
+                    1, 0, 0, 1,
+                    math.floor(ufo_x),
+                    math.floor(ufo_y)]
 
-                ufo_contour = ufoLib2.objects.Contour(ufo_points)
-                ufo_glyph.appendContour(ufo_contour)
+                ufo_glyph.components.append(ufo_component)
 
 
 def add_ufo_components(ufo_glyph,
@@ -1048,8 +1054,8 @@ def add_ufo_components(ufo_glyph,
         if delta != (0, 0):
             ufo_component.transformation = [
                 1, 0, 0, 1,
-                int(delta[1] * units_per_element_x),
-                int(delta[0] * bdf_font.units_per_element_y)]
+                math.floor(delta[1] * units_per_element_x),
+                math.floor(delta[0] * bdf_font.units_per_element_y)]
 
         ufo_glyph.components.append(ufo_component)
 
@@ -1154,9 +1160,10 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
             anchor_offset = component_anchors[anchor_name]
 
             anchor = ufoLib2.objects.Anchor(
-                int(anchor_offset[1] * units_per_element_x),
-                bdf_font.glyph_offset_x +
-                int(anchor_offset[0] * bdf_font.units_per_element_y),
+                math.floor(
+                    (anchor_offset[1] + bdf_font.glyph_offset_x) * units_per_element_x),
+                math.floor(
+                    anchor_offset[0] * bdf_font.units_per_element_y),
                 anchor_name)
 
             ufo_glyph.appendAnchor(anchor)
@@ -1281,6 +1288,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
 def add_ufo_glyphs(ufo_font, bdf_font):
     units_per_element_x = get_units_per_element_x(bdf_font)
 
+    add_element_glyph(ufo_font, bdf_font)
+
     anchors = {}
 
     for composed_name in bdf_font.glyphs:
@@ -1369,20 +1378,20 @@ def write_designspace(path, bdf_font):
             familyName=bdf_font.family_name,
             location=location)
 
-    for variable_instance in bdf_font.variable_instances:
-        instance_file_name = get_file_name(bdf_font, variable_instance.name)
+    for instance in bdf_font.variable_instances:
+        instance_file_name = get_file_name(bdf_font, instance.name)
 
         location = {}
-        for axis in variable_instance.location:
+        for axis in instance.location:
             axis_name = axes_info[axis]['name']
 
-            location[axis_name] = int(100 * variable_instance.location[axis])
+            location[axis_name] = int(100 * instance.location[axis])
 
         doc.addInstanceDescriptor(
             filename=instance_file_name + '.ufo',
             name=instance_file_name,
             familyName=bdf_font.family_name,
-            styleName=get_style_name(bdf_font, variable_instance.name),
+            styleName=get_style_name(bdf_font, instance.name),
             location=location
         )
 
@@ -1448,48 +1457,48 @@ def main():
                         help='overrides the font license URL string')
 
     parser.add_argument('--ascent',
-                        type=float,
+                        type=int,
                         help='overrides the font ascent in pixels (baseline to top of line)')
     parser.add_argument('--descent',
-                        type=float,
+                        type=int,
                         help='overrides the font descent in pixels (baseline to bottom of line)')
     parser.add_argument('--cap-height',
-                        type=float,
+                        type=int,
                         help='overrides the font cap height in pixels (typically of uppercase A)')
     parser.add_argument('--x-height',
-                        type=float,
+                        type=int,
                         help='overrides the font x height in pixels (typically of lowercase x)')
 
     parser.add_argument('--underline-position',
-                        type=float,
+                        type=int,
                         help='sets the font underline position in pixels (top, relative to the baseline)')
     parser.add_argument('--underline-thickness',
-                        type=float,
+                        type=int,
                         help='sets the font underline thickness in pixels')
     parser.add_argument('--strikeout-position',
-                        type=float,
+                        type=int,
                         help='sets the font strikeout position in pixels (top, relative to the baseline)')
     parser.add_argument('--strikeout-thickness',
-                        type=float,
+                        type=int,
                         help='sets the font strikeout thickness in pixels')
 
     parser.add_argument('--superscript-size',
-                        type=float,
+                        type=int,
                         help='sets the font superscript size in pixels')
     parser.add_argument('--superscript-x',
-                        type=float,
+                        type=int,
                         help='sets the font superscript x offset in pixels')
     parser.add_argument('--superscript-y',
-                        type=float,
+                        type=int,
                         help='sets the font superscript y offset in pixels')
     parser.add_argument('--subscript-size',
-                        type=float,
+                        type=int,
                         help='sets the font subscript size in pixels')
     parser.add_argument('--subscript-x',
-                        type=float,
+                        type=int,
                         help='sets the font subscript x offset in pixels')
     parser.add_argument('--subscript-y',
-                        type=float,
+                        type=int,
                         help='sets the font subscript y offset in pixels')
 
     parser.add_argument('--codepoint-subset',

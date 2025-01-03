@@ -30,7 +30,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
    - If your font is in `.ttf` or `.otf`, first convert to `.bdf`. Use `otf2bdf`:
      - macOS: Install via [Homebrew](https://brew.sh/): `brew install otf2bdf`
      - Ubuntu: `sudo apt install otf2bdf`
-     - Windows: Download from [here](http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/)
+     - Windows: Download from [here](http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/).
 
 2. **Setup Environment**:
    - Ensure [Python](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/installation/) are installed.
