@@ -8,10 +8,10 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 
 * **Automated Font Generation**: Creates both static and variable fonts.
 * **Variable Axes Support**: Includes five axes for pixel manipulation:
-  * **Element size (ESIZ)**
+  * **Element Size (ESIZ)**
   * **Roundness (ROND)**
   * **Bleed (BLED)**
-  * **horizontal element spacing (XESP)**
+  * **Horizontal Element Spacing (XESP)**
   * **Element Jitter (EJIT)**
   
   These allow you to simulate the visual characteristics of LCD screens, CRT monitors and dot matrix printouts.
