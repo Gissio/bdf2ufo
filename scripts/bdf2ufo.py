@@ -10,6 +10,7 @@ import argparse
 from datetime import datetime
 import math
 import os
+import random
 import shutil
 import sys
 
@@ -302,12 +303,12 @@ custom_anchors = [
 ]
 
 # ID: Label, min, max, default
-variable_axes = {
+axes_info = {
     'ESIZ': {'name': 'Element Size', 'min': 0.1, 'max': 1, 'default': 1},
     'ROND': {'name': 'Roundness', 'min': 0, 'max': 1, 'default': 0},
     'BLED': {'name': 'Bleed', 'min': 0, 'max': 1, 'default': 0},
-    'ESPX': {'name': 'Horizontal Element Spacing', 'min': 0, 'max': 1, 'default': 0},
-    'ESPY': {'name': 'Vertical Element Spacing', 'min': 0, 'max': 1, 'default': 0},
+    'XESP': {'name': 'Horizontal Element Spacing', 'min': 0.5, 'max': 1, 'default': 1},
+    'EJIT': {'name': 'Element Jitter', 'min': 0, 'max': 0.1, 'default': 0},
 }
 
 
@@ -403,7 +404,7 @@ def parse_axes_string(axes_string):
         axis_components = axis_string.split('=', 2)
         axis = axis_components[0]
 
-        if axis not in variable_axes:
+        if axis not in axes_info:
             log_error(
                 f'invalid axis {axis} in parameter: {axes_string}')
 
@@ -564,7 +565,7 @@ def load_bdf(config):
         set_bdf_property(bdf_font, config, 'ascent',
                          get_bdf_property(bdf, 'FONT_ASCENT', bdf.ptSize))
         set_bdf_property(bdf_font, config, 'descent',
-                         get_bdf_property(bdf, 'FONT_DESCENT', 0))
+                         -get_bdf_property(bdf, 'FONT_DESCENT', 0))
         set_bdf_property(bdf_font, config, 'cap_height',
                          get_bdf_property(bdf, 'CAP_HEIGHT', cap_height))
         set_bdf_property(bdf_font, config, 'x_height',
@@ -598,35 +599,44 @@ def load_bdf(config):
                          get_bdf_property(bdf, 'SUBSCRIPT_Y',
                                           bdf_font.cap_height - bdf_font.subscript_size))
 
+        bdf_font.boundingbox = (bdf_boundingbox0, bdf_boundingbox1)
         bdf_font.glyph_offset_x = config.glyph_offset_x
         bdf_font.glyph_offset_y = config.glyph_offset_y
         bdf_font.units_per_em = config.units_per_em
 
-        bdf_font.axes = [key for key in parse_axes_string(config.axes)]
+        bdf_font.variable_axes = [
+            key for key in parse_axes_string(config.variable_axes)]
 
-        bdf_font.instances = []
-        config_instance = config.instance if config.instance is not None else []
-        for instance_string in config_instance:
-            instance = Object()
+        bdf_font.variable_instances = []
+        if len(bdf_font.variable_axes) > 0:
+            for instance_string in config.variable_instance:
+                variable_instance = Object()
 
-            instance_components = instance_string.split(',')
-            instance.family_name = (
-                bdf_font.family_name + ' ' + instance_components[0]).strip()
-            instance.location = parse_axes_string(
-                ','.join(instance_components[1:]))
+                components = instance_string.split(',')
+                variable_instance.name = components[0]
+                variable_instance.location = parse_axes_string(
+                    ','.join(components[1:]))
 
-            bdf_font.instances.append(instance)
+                bdf_font.variable_instances.append(variable_instance)
+
+        else:
+            variable_instance = Object()
+            variable_instance.name = ''
+            variable_instance.location = []
+
+            bdf_font.variable_instances.append(variable_instance)
 
         bdf_font.location = {}
-        for axis in variable_axes:
-            bdf_font.location[axis] = variable_axes[axis]['default']
-        location = parse_axes_string(config.location)
+        for axis in axes_info:
+            bdf_font.location[axis] = axes_info[axis]['default']
+        location = parse_axes_string(config.static_axes)
         for axis in location:
             bdf_font.location[axis] = location[axis]
 
-        bdf_font.boundingbox = (bdf_boundingbox0, bdf_boundingbox1)
-        bdf_font.units_per_pixel = int(math.exp2(math.ceil(math.log2(
-            bdf_font.units_per_em / bdf.ptSize))))
+        bdf_font.units_per_element_y = bdf_font.units_per_em / \
+            (bdf_font.ascent - bdf_font.descent)
+
+        bdf_font.custom_style_name = config.custom_style_name
 
     return bdf_font
 
@@ -639,138 +649,136 @@ def subtract_offset(a, b):
     return (a[0] - b[0], a[1] - b[1])
 
 
-def get_units_per_element(bdf_font):
-    units_per_element_y = int(
-        bdf_font.units_per_pixel * (1 + bdf_font.location['ESPY']))
-    units_per_element_x = int(
-        bdf_font.units_per_pixel * (1 + bdf_font.location['ESPX']))
-
-    return units_per_element_y, units_per_element_x
+def get_units_per_element_x(bdf_font):
+    return bdf_font.location['XESP'] * bdf_font.units_per_element_y
 
 
-def get_style_name(bdf_font):
-    return (weight_name_from_weight[bdf_font.weight] + ' ' +
-            bdf_font.slope).strip()
+def get_style_name(bdf_font, instance_name=''):
+    style_name = ''
+
+    if bdf_font.custom_style_name != '':
+        style_name += bdf_font.custom_style_name + ' '
+
+    if instance_name != '':
+        style_name += instance_name + ' '
+
+    if bdf_font.width_class != 5:
+        style_name = width_name_from_width_class() + ' '
+
+    style_name += weight_name_from_weight[bdf_font.weight]
+
+    if bdf_font.slope != '':
+        style_name += ' ' + bdf_font.slope
+
+    return style_name
 
 
-def get_font_name(bdf_font):
-    return bdf_font.family_name + ' ' + get_style_name(bdf_font)
+def get_file_name(bdf_font, sub_style_name=''):
+    return bdf_font.family_name.replace(' ', '') + '-' + sub_style_name +\
+        get_style_name(bdf_font).replace(' ', '')
 
 
-def get_dashed(value):
-    return value.replace(' ', '-')
+def set_ufo_info(ufo_font, bdf_font):
+    # Ascenders and descenders
+    line_ascender = int(bdf_font.ascent * bdf_font.units_per_element_y)
+    line_descender = int(bdf_font.descent * bdf_font.units_per_element_y)
+    line_height = line_ascender - line_descender
 
+    em_descender = line_descender - \
+        int((bdf_font.units_per_em - line_height) / 2)
+    em_ascender = bdf_font.units_per_em + em_descender
 
-def get_style_map_style_name(bdf_font):
-    if bdf_font.weight <= 500:
-        style_map_style_name = 'regular'
-    else:
+    # Style map style name
+    if bdf_font.weight == 700:
         style_map_style_name = 'bold'
+    else:
+        style_map_style_name = 'regular'
 
     if bdf_font.slope != '':
         style_map_style_name += ' italic'
 
-    return style_map_style_name
+    # Version
+    version_components = bdf_font.font_version.split(';', 2)
+    if version_components[0].startswith('Version '):
+        version_components[0] = version_components[8:]
+    font_version = 'Version ' + ';'.join(version_components)
 
-
-def get_version_majorminor(bdf_font):
-    version_components = bdf_font.font_version.split('.')
-    if len(version_components) == 2:
+    version_number_components = version_components[0].split('.')
+    version_majorminor = (1, 0)
+    if len(version_number_components) == 2:
         try:
-            return (int(version_components[0]),
-                    int(version_components[1]))
+            version_number_components = (
+                int(version_number_components[0]), int(version_number_components[1]))
         except:
             pass
-
-    return (1, 0)
-
-
-def set_ufo_info(ufo_font, bdf_font):
-    units_per_element_y, units_per_element_x = get_units_per_element(bdf_font)
-
-    em_line_ascender = int(bdf_font.ascent * bdf_font.units_per_pixel)
-    em_line_descender = int(-bdf_font.descent * bdf_font.units_per_pixel)
-    em_line_height = em_line_ascender - em_line_descender
-    em_descender = em_line_descender - \
-        int((bdf_font.units_per_em - em_line_height) / 2)
-    em_ascender = bdf_font.units_per_em + em_descender
 
     # Set info
     ufo_info = ufo_font.info
 
     ufo_info.familyName = bdf_font.family_name
     ufo_info.styleName = get_style_name(bdf_font)
-    ufo_info.styleMapFamilyName = get_font_name(bdf_font)
-    ufo_info.styleMapStyleName = get_style_map_style_name(bdf_font)
-    ufo_info.versionMajor, ufo_info.versionMinor = get_version_majorminor(
-        bdf_font)
+    ufo_info.versionMajor, ufo_info.versionMinor = version_majorminor
+
     ufo_info.copyright = bdf_font.copyright
     ufo_info.unitsPerEm = bdf_font.units_per_em
-    ufo_info.ascender = em_ascender
     ufo_info.descender = em_descender
-    ufo_info.xHeight = int(bdf_font.x_height * units_per_element_y)
-    ufo_info.capHeight = int(bdf_font.cap_height * units_per_element_y)
-    ufo_info.italicAngle = 0 if bdf_font.slope == '' else -12
+    ufo_info.xHeight = int(
+        bdf_font.x_height * bdf_font.units_per_element_y)
+    ufo_info.capHeight = int(
+        bdf_font.cap_height * bdf_font.units_per_element_y)
+    ufo_info.ascender = em_ascender
+
     ufo_info.guidelines = []
 
-    ufo_info.postscriptFontName = get_dashed(ufo_info.styleMapFamilyName)
-    ufo_info.postscriptFullName = ufo_info.styleMapFamilyName
-    ufo_info.postscriptUnderlinePosition = int(
-        bdf_font.underline_position * units_per_element_y)
-    ufo_info.postscriptUnderlineThickness = int(
-        bdf_font.underline_thickness * units_per_element_y)
-    ufo_info.postscriptWeightName = weight_name_from_weight[bdf_font.weight]
-
-    ufo_info.openTypeHeadCreated = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    ufo_info.openTypeHheaAscender = int(bdf_font.ascent * units_per_element_y)
-    ufo_info.openTypeHheaDescender = int(-bdf_font.descent *
-                                         units_per_element_y)
+    ufo_info.openTypeHheaAscender = line_ascender
+    ufo_info.openTypeHheaDescender = line_descender
     ufo_info.openTypeHheaLineGap = 0
 
-    ufo_info.openTypeNameVersion = "Version " + bdf_font.font_version
-    ufo_info.openTypeNameUniqueID = bdf_font.manufacturer + \
-        ': ' + ufo_info.styleMapFamilyName
-    ufo_info.openTypeNameCompatibleFullName = ufo_info.styleMapFamilyName
     ufo_info.openTypeNameDesigner = bdf_font.designer
     ufo_info.openTypeNameDesignerURL = bdf_font.designer_url
     ufo_info.openTypeNameManufacturer = bdf_font.manufacturer
     ufo_info.openTypeNameManufacturerURL = bdf_font.manufacturer_url
     ufo_info.openTypeNameLicense = bdf_font.license
     ufo_info.openTypeNameLicenseURL = bdf_font.license_url
+    ufo_info.openTypeNameVersion = font_version
 
-    ufo_info.openTypeOS2WeightClass = bdf_font.weight
     ufo_info.openTypeOS2WidthClass = bdf_font.width_class
+    ufo_info.openTypeOS2WeightClass = bdf_font.weight
     ufo_info.openTypeOS2VendorID = "B2UF"
-    ufo_info.openTypeOS2Type = []
-    ufo_info.openTypeOS2Panose = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    ufo_info.openTypeOS2FamilyClass = [0, 0]
-    ufo_info.openTypeOS2TypoAscender = ufo_info.ascender
-    ufo_info.openTypeOS2TypoDescender = ufo_info.descender
+    ufo_info.openTypeOS2TypoAscender = ufo_info.openTypeHheaAscender
+    ufo_info.openTypeOS2TypoDescender = ufo_info.openTypeHheaDescender
     ufo_info.openTypeOS2TypoLineGap = ufo_info.openTypeHheaLineGap
     ufo_info.openTypeOS2WinAscent = max(int(
-        bdf_font.boundingbox[1][0] * units_per_element_y), 0)
+        bdf_font.boundingbox[1][0] * bdf_font.units_per_element_y), 0)
     ufo_info.openTypeOS2WinDescent = max(int(
-        -bdf_font.boundingbox[0][0] * units_per_element_y), 0)
+        -bdf_font.boundingbox[0][0] * bdf_font.units_per_element_y), 0)
     ufo_info.openTypeOS2SubscriptXSize = int(
-        bdf_font.subscript_size * units_per_element_y)
+        bdf_font.subscript_size * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SubscriptYSize = int(
-        bdf_font.subscript_size * units_per_element_y)
+        bdf_font.subscript_size * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SubscriptXOffset = int(
-        bdf_font.subscript_x * units_per_element_y)
+        bdf_font.subscript_x * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SubscriptYOffset = int(
-        bdf_font.subscript_y * units_per_element_y)
+        bdf_font.subscript_y * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SuperscriptXSize = int(
-        bdf_font.superscript_size * units_per_element_y)
+        bdf_font.superscript_size * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SuperscriptYSize = int(
-        bdf_font.superscript_size * units_per_element_y)
+        bdf_font.superscript_size * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SuperscriptXOffset = int(
-        bdf_font.superscript_x * units_per_element_y)
+        bdf_font.superscript_x * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2SuperscriptYOffset = int(
-        bdf_font.superscript_y * units_per_element_y)
-    ufo_info.openTypeOS2StrikeoutPosition = int(
-        bdf_font.strikeout_position * units_per_element_y)
+        bdf_font.superscript_y * bdf_font.units_per_element_y)
     ufo_info.openTypeOS2StrikeoutSize = int(
-        bdf_font.strikeout_thickness * units_per_element_y)
+        bdf_font.strikeout_thickness * bdf_font.units_per_element_y)
+    ufo_info.openTypeOS2StrikeoutPosition = int(
+        bdf_font.strikeout_position * bdf_font.units_per_element_y)
+
+    ufo_info.postscriptUnderlineThickness = int(
+        bdf_font.underline_thickness * bdf_font.units_per_element_y)
+    ufo_info.postscriptUnderlinePosition = int(
+        bdf_font.underline_position * bdf_font.units_per_element_y)
+
+    ufo_info = ufoLib2.Font().info
 
 
 def paint_bdf_glyph(composed_bitmap,
@@ -853,7 +861,8 @@ def get_bdf_components(bdf_font,
                 elif isinstance(bdf_components, list):
                     bdf_component = Object()
                     bdf_component.name = component_name
-                    bdf_component.offset = add_offset(composed_glyph.offset, offset)
+                    bdf_component.offset = add_offset(
+                        composed_glyph.offset, offset)
                     bdf_components.append(bdf_component)
 
                     return bdf_components
@@ -918,14 +927,14 @@ def decompose_bdf_glyph(bdf_font, composed_name):
         return components
 
 
-def get_points(units_per_pixel, location):
-    pixel_unit = units_per_pixel / 2
-    unit = location['ESIZ'] * pixel_unit
-    radius = location['ROND'] * unit
+def get_element_points(bdf_font):
+    units_per_pixel = bdf_font.location['ESIZ'] * bdf_font.units_per_element_y
+    unit = units_per_pixel / 2
+    radius = bdf_font.location['ROND'] * unit
 
-    # Cubic curves
+    # # Cubic curves
     tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
-    max_x = unit + location['BLED'] * (2 * pixel_unit - unit)
+    max_x = unit + bdf_font.location['BLED'] * (units_per_pixel - unit)
     max_y = unit
     min_x = max_x - radius
     min_y = max_y - radius
@@ -954,7 +963,7 @@ def get_points(units_per_pixel, location):
     # Quadratic curve
     # midarc = radius * math.cos(math.radians(45))
     # tangent = radius * (4 / 3) * math.tan(math.radians(90 / 4))
-    # max_x = unit + pixel_bleed * (2 * pixel_unit - unit)
+    # max_x = unit + bdf_font.location['BLED'] * (2 * units_per_pixel - unit)
     # max_y = unit
     # min_x = max_x - radius
     # min_y = max_y - radius
@@ -987,29 +996,40 @@ def get_points(units_per_pixel, location):
     # ]
 
 
+def get_random_offset(bdf_font):
+    while True:
+        value = random.gauss(0, bdf_font.location['EJIT'])
+
+        if math.fabs(value) < 1:
+            break
+
+    return value * bdf_font.units_per_element_y
+
+
 def add_ufo_bitmap(ufo_glyph,
                    bdf_font,
                    bdf_glyph):
-    units_per_element_y, units_per_element_x = get_units_per_element(bdf_font)
+    units_per_element_x = get_units_per_element_x(bdf_font)
 
-    points = get_points(bdf_font.units_per_pixel, bdf_font.location)
+    element_points = get_element_points(bdf_font)
 
     for y in range(bdf_glyph.bitmap.shape[0]):
         for x in range(bdf_glyph.bitmap.shape[1]):
             if bdf_glyph.bitmap[y][x]:
-                ufo_y = units_per_element_y * (
-                    bdf_glyph.offset[0] + y + 0.5)
-                ufo_x = units_per_element_x * (
-                    bdf_glyph.offset[1] + x + bdf_font.glyph_offset_x + 0.5)
+                ufo_y = (bdf_glyph.offset[0] + y + 0.5) * bdf_font.units_per_element_y +\
+                    get_random_offset(bdf_font)
+                ufo_x = (bdf_glyph.offset[1] + x + 0.5) * units_per_element_x +\
+                    get_random_offset(bdf_font)
 
                 ufo_points = []
-                for point_offset, point_type in points:
+                for point_offset, point_type in element_points:
                     ufo_points.append(
                         ufoLib2.objects.Point(
                             int(ufo_x + point_offset[1]),
                             int(ufo_y + point_offset[0]),
                             point_type)
                     )
+
                 ufo_contour = ufoLib2.objects.Contour(ufo_points)
                 ufo_glyph.appendContour(ufo_contour)
 
@@ -1017,7 +1037,7 @@ def add_ufo_bitmap(ufo_glyph,
 def add_ufo_components(ufo_glyph,
                        bdf_font,
                        components):
-    units_per_element_y, units_per_element_x = get_units_per_element(bdf_font)
+    units_per_element_x = get_units_per_element_x(bdf_font)
 
     for component in components:
         ufo_component = ufoLib2.objects.Component(component.name)
@@ -1028,8 +1048,8 @@ def add_ufo_components(ufo_glyph,
         if delta != (0, 0):
             ufo_component.transformation = [
                 1, 0, 0, 1,
-                delta[1] * units_per_element_x,
-                delta[0] * units_per_element_y]
+                int(delta[1] * units_per_element_x),
+                int(delta[0] * bdf_font.units_per_element_y)]
 
         ufo_glyph.components.append(ufo_component)
 
@@ -1110,14 +1130,15 @@ def add_anchors(anchors,
     else:
         if base_anchors[anchor_name] != anchor_offset:
             log_warning(
-                f'{get_unicode_string(composed_codepoint)} anchor "{anchor_name}"'
+                f'{get_unicode_string(composed_codepoint)} anchor "{
+                    anchor_name}"'
                 ' does not align with anchors from components [' +
                 ', '.join([component.name for component in components]) + ']'
             )
 
 
 def set_ufo_anchors(ufo_font, bdf_font, anchors):
-    units_per_element_y, units_per_element_x = get_units_per_element(bdf_font)
+    units_per_element_x = get_units_per_element_x(bdf_font)
 
     # UFO anchors, base and mark lists
     mark_map = {}
@@ -1133,8 +1154,9 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
             anchor_offset = component_anchors[anchor_name]
 
             anchor = ufoLib2.objects.Anchor(
-                anchor_offset[1] * units_per_element_x,
-                bdf_font.glyph_offset_x + anchor_offset[0] * units_per_element_y,
+                int(anchor_offset[1] * units_per_element_x),
+                bdf_font.glyph_offset_x +
+                int(anchor_offset[0] * bdf_font.units_per_element_y),
                 anchor_name)
 
             ufo_glyph.appendAnchor(anchor)
@@ -1208,8 +1230,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
             mark_class = fontTools.feaLib.ast.MarkClassDefinition(
                 fontTools.feaLib.ast.MarkClass(anchor_name),
                 fontTools.feaLib.ast.Anchor(
-                    anchor_offset[1] * units_per_element_x,
-                    anchor_offset[0] * units_per_element_y),
+                    int(anchor_offset[1] * units_per_element_x),
+                    int(anchor_offset[0] * bdf_font.units_per_element_y)),
                 glyphs
             )
             mark_lookup.statements.append(mark_class)
@@ -1224,8 +1246,8 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
                 anchor_name, anchor_offset = anchor_name_offset
                 marks.append((
                     fontTools.feaLib.ast.Anchor(
-                        anchor_offset[1] * units_per_element_x,
-                        anchor_offset[0] * units_per_element_y),
+                        int(anchor_offset[1] * units_per_element_x),
+                        int(anchor_offset[0] * bdf_font.units_per_element_y)),
                     fontTools.feaLib.ast.MarkClass(anchor_name)
                 ))
 
@@ -1257,7 +1279,7 @@ def set_ufo_anchors(ufo_font, bdf_font, anchors):
 
 
 def add_ufo_glyphs(ufo_font, bdf_font):
-    units_per_element_y, units_per_element_x = get_units_per_element(bdf_font)
+    units_per_element_x = get_units_per_element_x(bdf_font)
 
     anchors = {}
 
@@ -1267,7 +1289,7 @@ def add_ufo_glyphs(ufo_font, bdf_font):
         ufo_glyph = ufo_font.newGlyph(composed_name)
         if composed_glyph.codepoint != 0:
             ufo_glyph.unicode = composed_glyph.codepoint
-        ufo_glyph.width = composed_glyph.advance * units_per_element_x
+        ufo_glyph.width = int(composed_glyph.advance * units_per_element_x)
 
         components = decompose_bdf_glyph(bdf_font, composed_name)
 
@@ -1286,24 +1308,30 @@ def add_ufo_glyphs(ufo_font, bdf_font):
 def get_masters(bdf_font):
     masters = []
 
-    for master_index in range(2 ** len(bdf_font.axes)):
-        master = Object()
+    masters_num = len(bdf_font.variable_axes)
 
+    if masters_num >= 1:
+        for master_index in range(2 ** masters_num):
+            master = Object()
+            master.name = ''
+            master.location = {}
+
+            for axis_index in range(masters_num):
+                axis = bdf_font.variable_axes[axis_index]
+
+                if not master_index & (1 << axis_index):
+                    master.name += axis + 'min'
+                    master.location[axis] = axes_info[axis]['min']
+                else:
+                    master.name += axis + 'max'
+                    master.location[axis] = axes_info[axis]['max']
+
+            masters.append(master)
+
+    else:
+        master = Object()
         master.name = ''
         master.location = {}
-
-        for axis_index in range(len(bdf_font.axes)):
-            axis = bdf_font.axes[axis_index]
-
-            if master.name != '':
-                master.name += '-'
-
-            if not master_index & (1 << axis_index):
-                master.name += axis + 'min'
-                master.location[axis] = variable_axes[axis]['min']
-            else:
-                master.name += axis + 'max'
-                master.location[axis] = variable_axes[axis]['max']
 
         masters.append(master)
 
@@ -1311,65 +1339,64 @@ def get_masters(bdf_font):
 
 
 def write_designspace(path, bdf_font):
-    designspace_filename = get_dashed(
-        get_font_name(bdf_font)) + '.designspace'
+    font_file_name = get_file_name(bdf_font)
+
+    designspace_filename = font_file_name + '.designspace'
 
     doc = fontTools.designspaceLib.DesignSpaceDocument()
 
-    for axis in bdf_font.axes:
+    for axis in bdf_font.variable_axes:
         doc.addAxisDescriptor(
             tag=axis,
-            name=variable_axes[axis]['name'],
-            minimum=int(100 * variable_axes[axis]['min']),
-            maximum=int(100 * variable_axes[axis]['max']),
-            default=int(100 * variable_axes[axis]['default']),
+            name=axes_info[axis]['name'],
+            minimum=int(100 * axes_info[axis]['min']),
+            maximum=int(100 * axes_info[axis]['max']),
+            default=int(100 * axes_info[axis]['default']),
         )
 
     for master in get_masters(bdf_font):
-        ufo_name = get_dashed(get_font_name(
-            bdf_font)) + '-' + master.name
+        master_file_name = get_file_name(bdf_font, master.name)
 
         location = {}
         for axis in master.location:
-            axis_name = variable_axes[axis]['name']
+            axis_name = axes_info[axis]['name']
 
             location[axis_name] = int(100 * master.location[axis])
 
         doc.addSourceDescriptor(
-            filename=ufo_name + '.ufo',
-            name=ufo_name,
+            filename=master_file_name + '.ufo',
+            name=master_file_name,
             familyName=bdf_font.family_name,
             location=location)
 
-    for instance in bdf_font.instances:
-        ufo_name = instance.family_name + ' ' + get_style_name(bdf_font)
+    for variable_instance in bdf_font.variable_instances:
+        instance_file_name = get_file_name(bdf_font, variable_instance.name)
 
         location = {}
-        for axis in instance.location:
-            axis_name = variable_axes[axis]['name']
+        for axis in variable_instance.location:
+            axis_name = axes_info[axis]['name']
 
-            location[axis_name] = int(100 * instance.location[axis])
+            location[axis_name] = int(100 * variable_instance.location[axis])
 
         doc.addInstanceDescriptor(
-            filename=get_dashed(ufo_name) + '.ufo',
-            name=ufo_name,
-            familyName=instance.family_name,
-            styleName=get_style_name(bdf_font),
+            filename=instance_file_name + '.ufo',
+            name=instance_file_name,
+            familyName=bdf_font.family_name,
+            styleName=get_style_name(bdf_font, variable_instance.name),
             location=location
         )
 
     doc.write(path + '/' + designspace_filename)
 
     # config.yaml
-    config_path = path + '/config.yaml'
-
-    config = open(config_path, 'wt')
+    config = open(path + '/' + font_file_name + '-config.yaml', 'wt')
     config.write('sources:\n')
     config.write('  - ' + designspace_filename + '\n')
-    config.write('axisOrder:\n')
-    for axis in bdf_font.axes:
-        config.write(f'  - {axis}\n')
-    config.close()
+    if len(bdf_font.variable_axes) > 0:
+        config.write('axisOrder:\n')
+        for axis in bdf_font.variable_axes:
+            config.write(f'  - {axis}\n')
+        config.close()
 
 
 def main():
@@ -1387,6 +1414,9 @@ def main():
 
     parser.add_argument('--family-name',
                         help='overrides the font family name string')
+    parser.add_argument('--custom-style-name',
+                        default='',
+                        help='sets the font custom style name string')
     parser.add_argument('--font-version',
                         help='overrides the font version string')
     parser.add_argument('--weight',
@@ -1470,44 +1500,54 @@ def main():
                         help='specifies the codepoint for the .notdef character')
     parser.add_argument('--glyph-offset-x',
                         type=float,
-                        default=0.5,
+                        default=0,
                         help='sets the glyphs x offset in pixels')
     parser.add_argument('--glyph-offset-y',
                         type=float,
                         default=0,
                         help='sets the glyphs y offset in pixels')
+    parser.add_argument('--random-seed',
+                        type=int,
+                        default=0,
+                        help='sets the random seed for the EJIT axis (see below)')
     parser.add_argument('--units-per-em',
                         type=int,
-                        default=1024,
+                        default=2048,
                         help='sets the units per em value')
 
-    parser.add_argument('--axes',
-                        help='builds a variable font with specified axes (ESIZ: element size, ROND: roundness, BLED: bleed, ESPX: horizontal element spacing, ESPY: vertical element spacing): [axis][,...]')
-    parser.add_argument('--instance',
+    parser.add_argument('--variable-axes',
+                        help='builds a variable font with specified axes (ESIZ: element size, ROND: roundness, BLED: bleed, XESP: horizontal element spacing, EJIT: element jitter): [axis][,...]')
+    parser.add_argument('--variable-instance',
                         action='append',
-                        help='builds a static font with specified family subname and axes location: [family-subname][,[axis]=[value]][,...]')
-    parser.add_argument('--location',
-                        help='sets the axes location common to static and variable fonts: [[axis]=[value]][,...]')
+                        help='builds a variable font instance with specified location: [family-subname][,[axis]=[value]][,...]')
+    parser.add_argument('--static-axes',
+                        help='sets the static axes: [[axis]=[value]][,...]')
 
     parser.add_argument('input',
                         help='the .bdf file to be converted')
     parser.add_argument('output',
-                        help='the designspace folder with the built .ufo files')
+                        help='the masters folder with the built .ufo files')
 
     config = parser.parse_args()
 
     if config.verbose:
         log_level = 0
+    if config.variable_instance is None:
+        config.variable_instance = []
+    elif config.variable_axes is None:
+        log_error(
+            'can\'t create variable font instances without variable font axes')
 
     print('Loading BDF font...')
     bdf_font = load_bdf(config)
 
-    print('Preparing UFO designspace folder...')
+    print('Preparing masters folder...')
     os.makedirs(config.output, exist_ok=True)
 
     for master in get_masters(bdf_font):
-        ufo_file_name = get_dashed(get_font_name(
-            bdf_font)) + '-' + master.name + '.ufo'
+        random.seed(config.random_seed)
+
+        ufo_file_name = get_file_name(bdf_font, master.name) + '.ufo'
 
         for axis in master.location:
             bdf_font.location[axis] = master.location[axis]
@@ -1525,7 +1565,9 @@ def main():
             shutil.rmtree(output_path)
         ufo_font.write(fontTools.ufoLib.UFOWriter(output_path))
 
-    print(f'Building designspace...')
+    file_name = get_file_name(bdf_font)
+
+    print(f'Building {file_name}.designspace and {file_name}-config.yaml...')
     write_designspace(config.output, bdf_font)
 
     print('Done.')

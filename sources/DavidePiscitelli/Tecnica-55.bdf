@@ -1,16 +1,16 @@
 STARTFONT 2.1
-FONT -Tecnica-55-Regular-R-Regular--9-9-75-75-c-80-iso10646-1
-SIZE 9 75 75
+FONT -Tecnica-55-Regular-R-Regular--7-7-75-75-c-80-iso10646-1
+SIZE 7 75 75
 FONTBOUNDINGBOX 18 9 -7 -2
 STARTPROPERTIES 10
 FAMILY_NAME "Tecnica-55"
 WEIGHT_NAME "Regular"
-FONT_VERSION "Version 1.000"
+FONT_VERSION "1.000"
 COPYRIGHT "Copyright (c) 2024 by Davide Piscitelli (https://github.com/Davide-Piscitelli/Tecnica-Typeface.git)."
-FOUNDRY "FreeType"
-FONT_ASCENT 7
-FONT_DESCENT 2
-POINT_SIZE 9
+FOUNDRY "Davide Piscitelli"
+FONT_ASCENT 6
+FONT_DESCENT 1
+POINT_SIZE 7
 X_HEIGHT 4
 CAP_HEIGHT 5
 ENDPROPERTIES

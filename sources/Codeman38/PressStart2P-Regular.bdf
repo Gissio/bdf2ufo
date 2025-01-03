@@ -1,10 +1,10 @@
 STARTFONT 2.1
-FONT -Press Start 2P-Medium-R-Medium--8-8-75-75-c-80-iso10646-1
+FONT -Press Start 2P-Regular-R-Regular--8-8-75-75-c-80-iso10646-1
 SIZE 8 75 75
 FONTBOUNDINGBOX 14 11 -6 -4
 STARTPROPERTIES 9
 FAMILY_NAME "Press Start 2P"
-WEIGHT_NAME "Medium"
+WEIGHT_NAME "Regular"
 COPYRIGHT "Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name ""Press Start 2P"""
 FOUNDRY "FreeType"
 FONT_ASCENT 7
