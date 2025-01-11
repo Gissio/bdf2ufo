@@ -71,7 +71,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 * **Bold Effect**: Enhance boldness by setting `EDBL` to double elements with a 0.5 vertical offset.
 * **Static Fonts**: Omit `--variable-axis` and `--variable-instance`; use `--static-axes` to define axis values.
 * **Combining Characters**: Characters from U+0300 to U+036F, if undefined, are automatically copied from similar defined glyphs.
-* **Combining alternatives**: `bdf2ufo` searches both combining characters and modifiers for decomposing composed characters, allowing alternates in small-sized fonts.
+* **Combining Alternatives**: `bdf2ufo` searches both combining characters and modifiers for decomposing composed characters, allowing alternates in small-sized fonts.
 * **Anchor Positioning**: Anchors are currently positioned at the bottom-center of the glyph.
 
 ## Additional Resources
