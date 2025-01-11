@@ -7,7 +7,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 ## Features
 
 * **Automated Font Generation**: Creates both static and variable fonts.
-* **Variable Font Axes Support**: Includes five axes for pixel manipulation:
+* **Variable Font Axes Support**: Supports five axes for pixel manipulation:
   * **Element Size (ESIZ)**
   * **Roundness (ROND)**
   * **Bleed (BLED)**
@@ -16,14 +16,14 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 
   These allow you to simulate the visual characteristics of LCD screens, CRT monitors and dot matrix printer printouts.
 
-* **Element Composition**: Reduces font size by composing characters from a pixel glyph.
+* **Element Composition**: Composites characters from a pixel glyph to reduce font size.
 * **Glyph Decomposition**: Automatically decomposes composed characters for further size reduction.
-* **Anchor Creation**: Adds base-to-mark anchors automatically.
+* **Anchor Creation**:  Automatically adds base-to-mark anchors.
 
 ## Examples
 
-* Check out **[Tiny5](https://github.com/Gissio/font_Tiny5)**.
-* Check out **[DotMatrix](https://github.com/Gissio/font_DotMatrix)**.
+* **[Tiny5](https://github.com/Gissio/font_Tiny5)**
+* **[DotMatrix](https://github.com/Gissio/font_DotMatrix)**
 
 ## Axes
 
@@ -38,7 +38,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 ## Building a font
 
 1. **Convert Source Font**
-   * If your font is in `.ttf` or `.otf`, first convert to `.bdf`. Use `otf2bdf`:
+   * If your font is in `.ttf` or `.otf`, first convert to `.bdf`. You can use `otf2bdf`:
      * macOS: Install via [Homebrew](https://brew.sh/): `brew install otf2bdf`
      * Ubuntu: `sudo apt install otf2bdf`
      * Windows: Download from [here](http://sofia.nmsu.edu/~mleisher/Software/otf2bdf/).
@@ -49,7 +49,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 3. **Install Dependencies**:
    * Run `pip install -r requirements.txt`
 
-4. **Prepare Directory**:
+4. **Prepare Master Directory**:
    * Create an empty folder to hold your `.ufo` master files.
 
 5. **Run bdf2ufo**:
@@ -66,13 +66,13 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 
 * **Verbose Output**: Use `--verbose` for detailed conversion logs.
 * **Glyph Alignment**: Adjust glyph centering with `--glyph-offset-x`; supports fractional values.
-* **Jitter Effect**: Set `EJIT` around 0.05 for a subtle jitter using a Gaussian distribution.
-* **Axes Limits**: Use `--axis-limits` to adjust the axes limits.
-* **Bold Effect**: Enhance boldness by setting `EDBL` to double elements with a 0.5 vertical offset.
-* **Static Fonts**: Omit `--variable-axis` and `--variable-instance`; use `--static-axes` to define axis values.
-* **Combining Characters**: Characters from U+0300 to U+036F, if undefined, are automatically copied from similar defined glyphs.
-* **Combining Alternatives**: `bdf2ufo` searches both combining characters and modifiers for decomposing composed characters, allowing alternates in small-sized fonts.
-* **Anchor Positioning**: Anchors are currently positioned at the bottom-center of the glyph.
+* **Jitter Effect**: Set `EJIT` to around 0.05 for a subtle jitter with Gaussian distribution.
+* **Axes Limits**: Adjust the axes limits with `--axis-limits`.
+* **Bold Effect**: Use `--double-stroke` to enhance boldness by doubling elements with a 0.5 vertical offset.
+* **Static Fonts**: Omit `--variable-axis` and `--variable-instance`, and use `--static-axes` to define axis values.
+* **Combining Characters**: Undefined characters from U+0300 to U+036F are automatically copied from similar defined glyphs.
+* **Combining Alternatives**: `bdf2ufo` looks for both combining characters and modifiers to decompose composed characters, allowing for alternates in small fonts.
+* **Anchor Positioning**: Anchors are placed at the bottom-center of glyphs.
 
 ## Additional Resources
 
