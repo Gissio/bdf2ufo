@@ -67,7 +67,7 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 * **Verbose Output**: Use `--verbose` for detailed conversion logs.
 * **Glyph Alignment**: Adjust glyph centering with `--glyph-offset-x`; supports fractional values.
 * **Jitter Effect**: Set `EJIT` to around 0.05 for a subtle jitter with Gaussian distribution.
-* **Axes Limits**: Adjust the axes limits with `--axis-limits`.
+* **Axes Limits**: Adjust the axes limits with `--axes-limits`.
 * **Bold Effect**: Use `--double-stroke` to enhance boldness by doubling elements with a 0.5 vertical offset.
 * **Static Fonts**: Omit `--variable-axis` and `--variable-instance`, and use `--static-axes` to define axis values.
 * **Combining Characters**: Undefined characters from U+0300 to U+036F are automatically copied from similar defined glyphs.
