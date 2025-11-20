@@ -55,12 +55,12 @@ Converts `.bdf` pixel fonts to `.ufo` static and variable vector fonts.
 5. **Run bdf2ufo**:
    * For usage help, execute:
 
-        python tools/bdf2ufo.py --help
+         python tools/bdf2ufo.py --help
 
 6. **Compile .ufo files**:
    * Use `gftools`:
 
-        gftools builder [masters-path]/[family-name]-config.yaml
+         gftools builder [masters-path]/[family-name]-config.yaml
 
 ## Tips
 
