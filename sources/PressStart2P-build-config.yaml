@@ -1,0 +1,125 @@
+# ---
+# Sample bdf2ufo configuration file for Press Start 2P font by CodeMan38
+# Undefined fields will be filled with BDF metadata or default values.
+# ---
+
+# style_name: "Regular"
+# family_name: "Press Start 2P"
+
+# font_version: "1.000"
+# font_copyright: "Copyright (c) 2011-2024 CodeMan38 (https://github.com/codeman38)"
+
+designer: "CodeMan38" 
+designer_url: "https://github.com/codeman38/PressStart2P"
+
+manufacturer: "CodeMan38"
+manufacturer_url: "https://github.com/codeman38"
+
+license: "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org"
+license_url: "https://openfontlicense.org"
+
+# The Unicode codepoint for the .notdef character, which is used when a glyph is missing.
+# notdef_character: "\u0000"
+
+# Font metrics, in pixel units.0
+# ascent: 7
+# descent: 1
+# cap_height: 7
+# x_height: 5
+
+# Underline metrics, in pixel units.
+underline_position: -1
+underline_thickness: 1
+
+# Underline metrics, in pixel units.
+strikeout_position: 3
+strikeout_thickness: 1
+
+# Superscript metrics: scale in em units, offset in pixel units.
+superscript_scale: [0.5, 0.5]
+superscript_offset: [0, 2.5]
+
+# Subscript metrics: scale in em units, offset in pixel units.
+subscript_scale: [0.5, 0.5]
+subscript_offset: [0, -1]
+
+# Glyph offset in pixel units, applied to all glyphs.
+# This can be used to adjust the position of all glyphs.
+glyph_offset: [0.5, 0]
+
+# Units per em and units per element.
+# These values are used to convert pixel units to vector units in the UFO file.
+units_per_em: 1024
+units_per_element: [128, 128]
+
+# The random seed for the Jitter axis.
+random_seed: 42
+
+# Override anchors for specific glyphs.
+# The position is given in pixel units, relative to the glyph's origin (bottom-left corner).
+custom_anchors:
+  # Top mark anchors
+  "\u0300": # Grave
+    "_top": [-5, 5]
+  "\u0301": # Acute
+    "_top": [-4, 5]
+  
+  # Base mark anchors
+  "A":
+    "top": [4, 8]
+    "bottom": [4, -1]
+
+# Define kerning groups and their values in pixels.
+# Kerning groups are automatically generated.
+kerning:
+  - ["FTYfrt", "j", -3]
+  - ["L", "t", -3]
+
+# Define default values for variable axes.
+default_axis_values:
+  "wght": 400
+  "wdth": 100
+  "slnt": 0
+  "ROND": 0
+  "BLED": 0
+  "JITT": 0
+
+# Define variable axes and their ranges.
+variable_axes:
+  "wght":
+    min: 100
+    max: 700
+  "wdth":
+    min: 50
+    max: 150
+  "slnt":
+    min: -8
+    max: 0
+  "ROND":
+    min: 0
+    max: 100
+  "BLED":
+    min: 0
+    max: 100
+  "JITT":
+    min: 0
+    max: 100
+
+# Define static font instances and their axis values.
+variable_instances:
+  "Regular":
+    "wght": 400
+  "Medium":
+    "wght": 500
+  "Bold":
+    "wght": 700
+  "LCD":
+    "wght": 340
+  "CRT":
+    "wght": 280
+    "ROND": 80
+    "BLED": 64
+  "Matrix":
+    "wght": 340
+    "ROND": 100
+    "JITT": 50
