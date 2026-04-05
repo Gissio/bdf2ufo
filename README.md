@@ -24,12 +24,15 @@ These axes allow you to simulate the rendering quirks of historical display tech
 ### Smart Glyph Construction
 
 * **Element Glyph System**
+
   Reuses a base “element” glyph to construct characters efficiently, reducing file size and complexity.
 
 * **Automatic Decomposition**
+
   Decomposes composite glyphs when needed for better compatibility and editing.
 
 * **Anchor Generation**
+
   Automatically adds:
 
   * base-to-mark anchors
