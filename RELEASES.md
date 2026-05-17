@@ -1,8 +1,12 @@
 # Releases
 
-## 1.1
+## 1.2
 
 * Added use_glyph_element option.
+
+## 1.1
+
+* Major code refactorization.
 
 ## 1.0.2
 
