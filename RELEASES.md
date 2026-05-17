@@ -6,7 +6,10 @@
 
 ## 1.1
 
-* Major code refactorization.
+* Code factorization
+* Renamed ESIZ to Weight axis.
+* Renamed EJIT to JITT axis.
+* Added Width and Slant axes.
 
 ## 1.0.2
 
