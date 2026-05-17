@@ -1,5 +1,9 @@
 # Releases
 
+## 1.1
+
+* Added use_glyph_element option.
+
 ## 1.0.2
 
 * Fixed versionMajor, versionMinor.
