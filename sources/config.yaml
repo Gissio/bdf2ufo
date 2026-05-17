@@ -1,2 +1,74 @@
 sources:
   - PressStart2P.designspace
+recipeProvider: googlefonts
+recipe:
+  # Modified recipe for decomposing components of Regular, Medium, and Bold static instances.
+  ../fonts/ttf/PressStart2P-Bold.ttf:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Bold
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  ../fonts/ttf/PressStart2P-Medium.ttf:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Medium
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  ../fonts/ttf/PressStart2P-Regular.ttf:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Regular
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  ../fonts/webfonts/PressStart2P-Bold.woff2:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Bold
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  - operation: compress
+  ../fonts/webfonts/PressStart2P-Medium.woff2:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Medium
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  - operation: compress
+  ../fonts/webfonts/PressStart2P-Regular.woff2:
+  - source: PressStart2P.designspace
+  - glyphData: null
+    instance_name: PressStart2P-Regular
+    operation: instantiateUfo
+  - args: --filter DecomposeComponentsFilter --filter ... --filter FlattenComponentsFilter --filter DecomposeTransformedComponentsFilter
+    operation: buildTTF
+  - args: '--fail-ok '
+    operation: autohint
+  - args: ''
+    operation: fix
+  - operation: compress

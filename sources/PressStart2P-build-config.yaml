@@ -31,7 +31,7 @@ license_url: "https://openfontlicense.org"
 underline_position: -1
 underline_thickness: 1
 
-# Underline metrics, in pixel units.
+# Strikeout metrics, in pixel units.
 strikeout_position: 3
 strikeout_thickness: 1
 
@@ -51,6 +51,9 @@ glyph_offset: [0.5, 0]
 # These values are used to convert pixel units to vector units in the UFO file.
 units_per_em: 1024
 units_per_element: [128, 128]
+
+# Whether to use an element glyph for each bitmap pixel.
+use_element_glyph: true
 
 # The random seed for the Jitter axis.
 random_seed: 42
