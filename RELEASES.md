@@ -1,5 +1,9 @@
 # Releases
 
+## 1.2.1
+
+* Fixed combining marks drifting horizontally when using the width (wdth) axis.
+
 ## 1.2
 
 * Added use_glyph_element option.
