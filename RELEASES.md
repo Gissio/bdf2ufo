@@ -1,5 +1,10 @@
 # Releases
 
+## 1.3
+
+* Improved element drawing: the width (wdth) axis now scales elements appropriately.
+* Improved master generation.
+
 ## 1.2.1
 
 * Fixed combining marks drifting horizontally when using the width (wdth) axis.
