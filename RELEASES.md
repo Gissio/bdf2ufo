@@ -1,5 +1,9 @@
 # Releases
 
+## 1.3.1
+
+* Added Armenian support.
+
 ## 1.3
 
 * Improved element drawing: the width (wdth) axis now scales elements appropriately.
