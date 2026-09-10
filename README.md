@@ -14,12 +14,14 @@ bdf2ufo provides built-in support for six expressive axes tailored to pixel typo
 
 * **Weight (`wght`)**
 * **Width (`wdth`)**
-* **Slant (`slnt`)**
+* **Italic (`ital`)**
 * **Roundness (`ROND`)**
 * **Bleed (`BLED`)**
 * **Jitter (`JITT`)**
 
 These axes allow you to simulate the rendering quirks of historical display technologies such as **LCD screens**, **CRT monitors**, and **dot matrix printers**, while remaining fully compatible with modern OpenType variable font workflows.
+
+The `ital` axis slants the glyphs by the angle set with the `italic_angle` build configuration option (8 degrees by default).
 
 ### Smart Glyph Construction
 
@@ -44,10 +46,10 @@ These axes allow you to simulate the rendering quirks of historical display tech
 | ---- | --------- | ---------------------------------------- | ---------------------------------------- |
 | wght | Weight    | ![drawing](docs/img/bdf2ufo-wght200.png) | ![drawing](docs/img/bdf2ufo-wght350.png) |
 | wdth | Width     | ![drawing](docs/img/bdf2ufo-wdth50.png)  | ![drawing](docs/img/bdf2ufo-wdth100.png) |
-| slnt | Slant     | ![drawing](docs/img/bdf2ufo-slnt0.png)   | ![drawing](docs/img/bdf2ufo-slnt-8.png)  |
+| ital | Italic    | ![drawing](docs/img/bdf2ufo-ital0.png)   | ![drawing](docs/img/bdf2ufo-ital1.png)   |
 | ROND | Roundness | ![drawing](docs/img/bdf2ufo-ROND0.png)   | ![drawing](docs/img/bdf2ufo-ROND100.png) |
 | BLED | Bleed     | ![drawing](docs/img/bdf2ufo-BLED0.png)   | ![drawing](docs/img/bdf2ufo-BLED100.png) |
-| EJIT | Jitter    | ![drawing](docs/img/bdf2ufo-JITT0.png)   | ![drawing](docs/img/bdf2ufo-JITT100.png) |
+| JITT | Jitter    | ![drawing](docs/img/bdf2ufo-JITT0.png)   | ![drawing](docs/img/bdf2ufo-JITT100.png) |
 
 ## Getting Started
 
@@ -141,3 +143,4 @@ gftools builder [masters-path]/config.yaml
 
 * **Combining characters** – Easy access to combining Unicode marks
   [https://sheeptester.github.io/javascripts/combining.html](https://sheeptester.github.io/javascripts/combining.html)
+  
