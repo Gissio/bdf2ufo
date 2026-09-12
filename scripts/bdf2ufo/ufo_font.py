@@ -204,7 +204,10 @@ class UFOFont:
         font_info.openTypeOS2WeightClass = weight_class
         font_info.openTypeOS2Selection = [7]
         font_info.openTypeOS2VendorID = "B2UF"
-        font_info.openTypeOS2Panose = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        # Panose: Latin Text, with bProportion set to 9 (Monospaced) for a
+        # monospace font.
+        panose_proportion = 9 if self.bdf_font.monospace else 0
+        font_info.openTypeOS2Panose = [2, 0, 0, panose_proportion, 0, 0, 0, 0, 0, 0]
         font_info.openTypeOS2FamilyClass = [0, 0]
         font_info.openTypeOS2TypoAscender = font_info.openTypeHheaAscender
         font_info.openTypeOS2TypoDescender = font_info.openTypeHheaDescender
@@ -248,6 +251,8 @@ class UFOFont:
         font_info.openTypeOS2StrikeoutPosition = int(
             self.bdf_font.strikeout_position * self.units_per_element.y
         )
+
+        font_info.postscriptIsFixedPitch = bool(self.bdf_font.monospace)
 
         font_info.postscriptUnderlineThickness = int(
             self.bdf_font.underline_thickness * self.units_per_element.y

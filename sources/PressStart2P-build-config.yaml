@@ -45,7 +45,12 @@ subscript_offset: [0, -1]
 
 # Glyph offset in pixel units, applied to all glyphs.
 # This can be used to adjust the position of all glyphs.
-glyph_offset: [0.5, 0]
+# Sub-pixel offsets are allowed.
+glyph_offset: [0, 0]
+
+# The fixed advance, in pixel units, of a monospace font.
+# Set to 0 for a proportional font.
+monospace: 8
 
 # Units per em and units per element.
 # These values are used to convert pixel units to vector units in the UFO file.
@@ -74,15 +79,15 @@ custom_anchors:
 
 # Define kerning groups and their values in pixels.
 # Kerning groups are automatically generated.
-kerning:
-  - ["FTYfrt", "j", -3]
-  - ["L", "t", -3]
+# kerning:
+#   - ["FTYfrt", "j", -3]
+#   - ["L", "t", -3]
 
 # Define default values for variable axes.
 default_axis_values:
   "wght": 400
   "wdth": 100
-  "slnt": 0
+  "ital": 0
   "ROND": 0
   "BLED": 0
   "JITT": 0
@@ -95,9 +100,9 @@ variable_axes:
   "wdth":
     min: 50
     max: 150
-  "slnt":
-    min: -8
-    max: 0
+  "ital":
+    min: 0
+    max: 1
   "ROND":
     min: 0
     max: 100
