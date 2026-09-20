@@ -1,5 +1,12 @@
 # Releases
 
+## 1.5.1
+
+- Added monospace verification and metrics.
+- Fixed diacritic placement in precomposed glyphs.
+- Fixed duplicate overlapping pixels in composed glyphs.
+- Fixed the OS/2 WWS bit in the font metadata.
+
 ## 1.5
 
 - Added monospace font support.

@@ -13,6 +13,7 @@ import sys
 from typing import Any, Union
 
 import bdflib.reader
+import unicodedata2 as unicodedata
 from fontTools.agl import UV2AGL
 import numpy as np
 
@@ -320,6 +321,10 @@ class BDFFont:
     def _verify_monospace(self) -> None:
         """Warn about glyphs whose advance differs from the monospace advance.
 
+        Combining marks (nonspacing and enclosing) are exempt: they are expected
+        to have a zero advance so they stack on the preceding base glyph without
+        consuming a cell.
+
         Does nothing for a proportional font. The advances are not modified: the
         .bdf file stays the single source of truth for the font's metrics.
         """
@@ -328,6 +333,12 @@ class BDFFont:
 
         for name, glyph in self.glyphs.items():
             advance = glyph["advance"]
+
+            if advance == 0 and unicodedata.category(glyph["character"]) in (
+                "Mn",
+                "Me",
+            ):
+                continue
 
             if advance != self.monospace:
                 logger.warning(

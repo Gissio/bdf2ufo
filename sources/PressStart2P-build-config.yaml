@@ -63,6 +63,9 @@ use_element_glyph: true
 # The random seed for the Jitter axis.
 random_seed: 42
 
+# The italic angle, in degrees, of the "ital" axis at its maximum value.
+italic_angle: 8
+
 # Override anchors for specific glyphs.
 # The position is given in pixel units, relative to the glyph's origin (bottom-left corner).
 custom_anchors:
@@ -78,7 +81,6 @@ custom_anchors:
     "bottom": [4, -1]
 
 # Define kerning groups and their values in pixels.
-# Kerning groups are automatically generated.
 # kerning:
 #   - ["FTYfrt", "j", -3]
 #   - ["L", "t", -3]
