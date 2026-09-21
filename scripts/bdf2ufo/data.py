@@ -61,7 +61,7 @@ WEIGHT_NAME_FROM_WGHT = {
 STATIC_STYLES = set(WEIGHT_CLASSES) | {"Italic"}
 
 # The italic angle, in degrees, of a fully italic ("ital" = 1) master.
-DEFAULT_ITALIC_ANGLE = 8.0
+DEFAULT_ITALIC_ANGLE = 12.0
 
 SLOPE_FROM_SLANT = {
     "I": "Italic",

@@ -1,5 +1,9 @@
 # Releases
 
+## 1.5.2
+
+- Adjusted default italic angle to 12 degrees.
+
 ## 1.5.1
 
 - Added monospace verification and metrics.
