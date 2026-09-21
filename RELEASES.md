@@ -1,5 +1,9 @@
 # Releases
 
+## 1.5.3
+
+- Fixed empty pixel rows and columns in fonts rendered with hinting (Windows). When building with gftools builder, set `flattenComponents: false` in the config, or the fix is lost in static fonts.
+
 ## 1.5.2
 
 - Adjusted default italic angle to 12 degrees.

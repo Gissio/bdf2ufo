@@ -21,7 +21,7 @@ bdf2ufo provides built-in support for six expressive axes tailored to pixel typo
 
 These axes allow you to simulate the rendering quirks of historical display technologies such as **LCD screens**, **CRT monitors**, and **dot matrix printers**, while remaining fully compatible with modern OpenType variable font workflows.
 
-The `ital` axis slants the glyphs by the angle set with the `italic_angle` build configuration option (8 degrees by default).
+The `ital` axis slants the glyphs by the angle set with the `italic_angle` build configuration option (12 degrees by default).
 
 ### Smart Glyph Construction
 
@@ -29,9 +29,9 @@ The `ital` axis slants the glyphs by the angle set with the `italic_angle` build
 
   Reuses a base “element” glyph to construct characters efficiently, reducing file size and complexity.
 
-* **Automatic Decomposition**
+* **Automatic Composition**
 
-  Decomposes composite glyphs when needed for better compatibility and editing.
+  Builds precomposed characters (e.g. `é`) from their base and mark glyphs using Unicode decomposition data, and keeps the drawn glyph whenever its bitmap differs.
 
 * **Anchor Generation**
 
@@ -39,6 +39,10 @@ The `ital` axis slants the glyphs by the angle set with the `italic_angle` build
 
   * base-to-mark anchors
   * mark-to-mark anchors
+
+* **Hinting-Safe Components**
+
+  Flattens nested components and disables TrueType grid rounding of component offsets, so fonts rendered with hinting (e.g. on Windows) don't show empty pixel rows or columns.
 
 ## Axes overview
 
@@ -101,7 +105,23 @@ python -m scripts.bdf2ufo.cli
 
 ### 5. Build your fonts
 
-Create a `config.yaml` in your masters directory, then compile using:
+Create a `config.yaml` in your masters directory:
+
+```yaml
+sources:
+  - [font-name].designspace
+autohintTTF: false
+flattenComponents: false
+```
+
+Both options matter for pixel fonts:
+
+* `autohintTTF: false` keeps ttfautohint away from the static fonts. gftools then adds a `gasp` table and a `prep` program with dropout control instead, and the outlines stay on the pixel grid.
+* `flattenComponents: false` stops gftools builder from rebuilding the components of static fonts. That rebuild drops the setting that turns off grid rounding, so hinted rendering shows empty pixel rows and columns again.
+
+See `sources/config.yaml` for an example.
+
+Then compile using:
 
 ```bash
 gftools builder [masters-path]/config.yaml
