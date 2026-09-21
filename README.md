@@ -117,7 +117,7 @@ flattenComponents: false
 Both options matter for pixel fonts:
 
 * `autohintTTF: false` keeps ttfautohint away from the static fonts. gftools then adds a `gasp` table and a `prep` program with dropout control instead, and the outlines stay on the pixel grid.
-* `flattenComponents: false` stops gftools builder from rebuilding the components of static fonts. That rebuild drops the setting that turns off grid rounding, so hinted rendering shows empty pixel rows and columns again.
+* `flattenComponents: false` keeps the components of static fonts as bdf2ufo wrote them. If gftools builder flattens them, they lose the setting that turns off grid rounding, and hinted rendering shows empty pixel rows and columns.
 
 See `sources/config.yaml` for an example.
 
