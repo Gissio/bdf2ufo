@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stop at the first failing command
+set -e
+
 # Setup environment
 if [ ! -d venv ] ; then
   python -m venv venv

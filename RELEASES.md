@@ -1,5 +1,11 @@
 # Releases
 
+## 1.6
+
+- Added the `axis_maps` build configuration option, which maps user coordinates to design coordinates on any variable axis. The maps are written as `<map>` elements into the `.designspace` file and compile to an `avar` table. All axis values of the configuration (`default_axis_values`, `variable_axes` and `variable_instances`) are user coordinates, and the masters are built at the mapped design coordinates. For example, mapping `wght` 700 to 580 and 900 to 700 makes **Bold** lighter and moves the previous heaviest weight to **Black**.
+- Set `usWeightClass` and `usWidthClass` of the masters and instances from their user space location.
+- Checked that default axis values and instance locations lie within the range of their variable axis.
+
 ## 1.5.3
 
 - Fixed empty pixel rows and columns in fonts rendered with hinting (Windows). When building with gftools builder, set `flattenComponents: false` in the config, or the fix is lost in static fonts.

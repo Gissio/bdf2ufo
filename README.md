@@ -23,6 +23,8 @@ These axes allow you to simulate the rendering quirks of historical display tech
 
 The `ital` axis slants the glyphs by the angle set with the `italic_angle` build configuration option (12 degrees by default).
 
+The pixel element size follows the design coordinate of the `wght` axis: an element fills its pixel at 400, half of it at 200 and 1.75 times it at 700. The `axis_maps` build configuration option maps user coordinates to design coordinates on any axis, for example to make **Bold** (700) lighter and move the heaviest weight to **Black** (900). All other axis values in the build configuration are user coordinates.
+
 ### Smart Glyph Construction
 
 * **Element Glyph System**
