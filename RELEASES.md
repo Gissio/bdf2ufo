@@ -1,5 +1,17 @@
 # Releases
 
+## 1.7
+
+- Added Latin and Cyrillic small caps (`smcp`, `c2sc`), taken from `.sc` glyphs, Unicode small capitals and lowercase letters drawn as small capitals (such as Cyrillic `в`, `к`, `т` or Latin `ø`, `ŋ`, `ə`). Accented small caps are composed from the accents of their capitals. A script's lookup is only generated when its whole basic alphabet has small caps.
+- Small caps have no assumed anchors, only those of `custom_anchors`. bdf2ufo warns about each small cap that lacks a base anchor (`top`, `bottom`, `ogonek`, `horn`) that its capital has.
+- Added support for unencoded glyphs (`ENCODING -1`), which keep their BDF glyph name. `custom_anchors` can be keyed by glyph name.
+- Added `-v` (`--verbose`); by default, only warnings and errors are printed.
+- `ď`, `ľ`, `Ľ`, `ť` and `ģ` now decompose with combining commas (U+0313, U+0312) instead of modifier letters.
+- Greek symbol letters (`ϐ ϑ ϕ ϖ`…) are no longer decomposed.
+- Custom anchors for a missing glyph log a warning instead of failing.
+- The monospace check ignores zero-width format characters.
+- Fixed the default superscript and subscript offsets, which also shifted them sideways.
+
 ## 1.6
 
 - Added the `axis_maps` build configuration option, which maps user coordinates to design coordinates on any variable axis. The maps are written as `<map>` elements into the `.designspace` file and compile to an `avar` table. All axis values of the configuration (`default_axis_values`, `variable_axes` and `variable_instances`) are user coordinates, and the masters are built at the mapped design coordinates. For example, mapping `wght` 700 to 580 and 900 to 700 makes **Bold** lighter and moves the previous heaviest weight to **Black**.
