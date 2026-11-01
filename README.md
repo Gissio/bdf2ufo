@@ -66,9 +66,9 @@ The small cap of a lowercase letter is, in order of preference:
    * the Unicode small capital of the letter, found by name: `LATIN SMALL LETTER A` takes `LATIN LETTER SMALL CAPITAL A` (U+1D00 ᴀ), `LATIN SMALL LIGATURE OE` takes U+0276 ɶ;
    * the small cap of an alias, for letters without a small capital of their own, such as dotless ı (i) or kra ĸ (k). See `SMALL_CAPS_ALIASES` in `data.py`.
 3. **The accented letter itself**, when its base letter is its own small cap (Cyrillic `й` on `и`).
-4. **A built glyph** for any other accented letter, named after it with a `.sc` suffix (such as `aacute.sc`). Its accents are taken from its capital and moved onto the small cap of the base letter by the difference of their base anchors, such as `top`. An accent above that the capital draws off its anchor, such as an acute centred on a four pixel wide capital, is placed on the anchor of the small cap, like on a lowercase letter:
-   * If the capital is composed (for instance `Ǻ` from `A`, ring and acute), the small cap is composed from the same marks, so stacked accents keep the spacing of the capital.
-   * If the capital is drawn, its accent pixels are copied, so an accent drawn differently from the combining mark (such as the apostrophe of `Ľ`) stays that way.
+4. **A built glyph** for any other accented letter, named after it with a `.sc` suffix (such as `aacute.sc`). Its accents are taken from its capital, but never placed like the capital places them:
+   * If the capital is composed (for instance `Ǻ` from `A`, ring and acute), the small cap is composed from the same marks. Each mark attaches with its mark anchor to the anchor of the small cap, or of the previous mark of the same anchor, like on a lowercase letter. Where the capital draws its marks is not used.
+   * If the capital is drawn, its accent pixels are copied and moved onto the small cap of the base letter by the difference of their base anchors, so an accent drawn differently from the combining mark (such as the apostrophe of `Ľ`) stays that way.
    * If the font has no such capital, the marks of the canonical decomposition are attached with their mark anchors.
 
 A letter that is its own small cap is substituted by a `.sc` copy of itself, so that `smcp` and `c2sc` change the glyph, as Shaperglot expects.
@@ -81,7 +81,7 @@ The substitutions of each script are written as separate lookups: Latin applies 
 
 ### Anchors for accented small caps
 
-bdf2ufo assumes no anchors for small caps: a small cap only has the anchors that `custom_anchors` gives it, keyed by character or by glyph name. A letter that is its own small cap, such as `ø`, keeps its own anchors, and so does its `.sc` copy. bdf2ufo warns about every small cap that lacks an anchor that its capital has, and accented small caps are only built when both the small cap and the capital base have the anchor that places the accent:
+bdf2ufo assumes no anchors for small caps: a small cap only has the anchors that `custom_anchors` gives it, keyed by character or by glyph name. A letter that is its own small cap, such as `ø`, keeps its own anchors, and so does its `.sc` copy. Accented small caps are placed on these anchors, so a small cap needs the anchors that its accents attach to:
 
 ```yaml
 custom_anchors:
@@ -96,10 +96,16 @@ custom_anchors:
 
 The same anchors also position combining marks typed after a small cap.
 
-The warning names the missing anchors:
+bdf2ufo warns about every small cap that lacks an anchor that its capital has, naming the missing anchors:
 
 ```text
 uni025B.sc has no 'bottom', 'ogonek', 'top' anchor, which uni0190 has
+```
+
+An accented small cap whose base small cap lacks the anchor of one of its accents is not built, and bdf2ufo warns about it:
+
+```text
+uni1E13.sc could be built with a 'bottom' anchor on uni1D05
 ```
 
 Run bdf2ufo with `-v` to see in the build log what else is missing, for instance:
@@ -108,7 +114,6 @@ Run bdf2ufo with `-v` to see in the build log what else is missing, for instance
 Small caps (cyrl) left out, 6 of 31 letters have no small cap: а б е р у ф
 U+0431 has no small cap, uni0431.sc could be added
 uni0451.sc could be built with a small cap of uni0415
-uhorn.sc could be built with a 'horn' anchor on uni1D1C
 ```
 
 ## Axes overview

@@ -27,10 +27,6 @@ from .utils import Vec2, format_unicode_character, get_glyph_name
 # Constants
 SMALL_CAPS_SUFFIX = ".sc"
 
-# The anchor that moves the pieces of a composed capital that are not marks,
-# such as an apostrophe
-DEFAULT_ANCHOR_NAME = "top"
-
 # Definitions
 logger = logging.getLogger(__name__)
 
@@ -391,18 +387,18 @@ class _SmallCapsBuilder:
     def _compose_from_capital(
         self, small_cap_name: str, capital_name: str
     ) -> Optional[_BuiltGlyph]:
-        """Compose a small cap from the components of its composed capital.
+        """Compose a small cap from the marks of its composed capital.
 
         The innermost base of the capital, such as "A" for U+01FA, is replaced
-        by its small cap, and every other component keeps its place relative
-        to the base anchor that positions it. A mark above that the capital
-        draws off its anchor, such as an acute centred on a four pixel wide
-        capital, lands on the anchor of the small cap, as on a lowercase
-        letter. Marks below keep their place, such as a dot under the stem.
+        by its small cap, and every mark of the capital attaches with its mark
+        anchor to the base anchor of the small cap, or of the previous mark of
+        the same anchor, as on a lowercase letter. Where the capital draws its
+        marks is not used, and no anchor is assumed: a small cap without the
+        anchor of a mark is not built.
         """
         pieces = get_pieces(self.components, capital_name)
 
-        capital_base_name, capital_base_offset = pieces[0]
+        capital_base_name, _capital_base_offset = pieces[0]
         base_name = self._get_base_small_cap(
             small_cap_name, capital_name, capital_base_name
         )
@@ -411,38 +407,29 @@ class _SmallCapsBuilder:
 
         glyph_components = [(base_name, Vec2(0))]
         glyph_anchors = dict(self.anchors.get(base_name, {}))
-        deviations = {}
 
-        for piece_name, piece_offset in pieces[1:]:
+        for piece_name, _piece_offset in pieces[1:]:
             piece_character = self.bdf_font.glyphs[piece_name]["character"]
-            if piece_character in MARKS:
-                anchor_name = MARKS[piece_character][0]
-            else:
-                anchor_name = DEFAULT_ANCHOR_NAME
-
-            delta = self._get_anchor_delta(
-                small_cap_name, base_name, capital_base_name, anchor_name
-            )
-            if delta is None:
+            if piece_character not in MARKS:
+                logger.warning(
+                    "%s is not built, %s is not a mark", small_cap_name, piece_name
+                )
                 return None
 
-            offset = piece_offset - capital_base_offset + delta
-
-            if piece_character in MARKS and anchor_name == "top":
-                # The first mark above sets the shift for all of them
-                if anchor_name not in deviations:
-                    deviations[anchor_name] = self._get_horizontal_deviation(
-                        capital_base_name,
-                        piece_name,
-                        piece_offset - capital_base_offset,
-                        anchor_name,
-                    )
-                offset = offset - Vec2(deviations[anchor_name], 0)
+            offset = self._get_mark_offset(
+                small_cap_name,
+                base_name,
+                glyph_anchors,
+                piece_name,
+                MARKS[piece_character][0],
+                logging.WARNING,
+            )
+            if offset is None:
+                return None
 
             glyph_components.append((piece_name, offset))
 
-            if piece_character in MARKS:
-                self._propagate_anchors(glyph_anchors, piece_name, offset)
+            self._propagate_anchors(glyph_anchors, piece_name, offset)
 
         return self._get_composed_glyph(
             f"composed from {capital_name}", glyph_components, glyph_anchors
@@ -523,18 +510,17 @@ class _SmallCapsBuilder:
                 return None
 
             mark_name = self.bdf_font.names[mark_character]
-            mark_anchors = self.anchors.get(mark_name, {})
-            anchor_name = MARKS[mark_character][0]
 
-            if anchor_name not in glyph_anchors:
-                self._log_missing_anchor(small_cap_name, anchor_name, base_name)
+            offset = self._get_mark_offset(
+                small_cap_name,
+                base_name,
+                glyph_anchors,
+                mark_name,
+                MARKS[mark_character][0],
+            )
+            if offset is None:
                 return None
 
-            if f"_{anchor_name}" not in mark_anchors:
-                self._log_missing_anchor(small_cap_name, f"_{anchor_name}", mark_name)
-                return None
-
-            offset = glyph_anchors[anchor_name] - mark_anchors[f"_{anchor_name}"]
             glyph_components.append((mark_name, offset))
 
             self._propagate_anchors(glyph_anchors, mark_name, offset)
@@ -606,30 +592,39 @@ class _SmallCapsBuilder:
 
         return base_anchors[anchor_name] - capital_base_anchors[anchor_name]
 
-    def _get_horizontal_deviation(
+    def _get_mark_offset(
         self,
-        capital_base_name: str,
+        small_cap_name: str,
+        base_name: str,
+        glyph_anchors: dict,
         mark_name: str,
-        mark_offset: Vec2,
         anchor_name: str,
-    ) -> float:
-        """Return how far a mark sits left of its anchor on a capital."""
-        capital_base_anchors = self.anchors.get(capital_base_name, {})
+        level: int = logging.INFO,
+    ) -> Optional[Vec2]:
+        """Return where a mark attaches to the anchors of a small cap."""
         mark_anchors = self.anchors.get(mark_name, {})
 
-        if anchor_name not in capital_base_anchors:
-            return 0
+        if anchor_name not in glyph_anchors:
+            self._log_missing_anchor(small_cap_name, anchor_name, base_name, level)
+            return None
+
         if f"_{anchor_name}" not in mark_anchors:
-            return 0
+            self._log_missing_anchor(
+                small_cap_name, f"_{anchor_name}", mark_name, level
+            )
+            return None
 
-        expected = capital_base_anchors[anchor_name] - mark_anchors[f"_{anchor_name}"]
-
-        return mark_offset.x - expected.x
+        return glyph_anchors[anchor_name] - mark_anchors[f"_{anchor_name}"]
 
     def _log_missing_anchor(
-        self, small_cap_name: str, anchor_name: str, glyph_name: str
+        self,
+        small_cap_name: str,
+        anchor_name: str,
+        glyph_name: str,
+        level: int = logging.INFO,
     ) -> None:
-        logger.info(
+        logger.log(
+            level,
             "%s could be built with a '%s' anchor on %s",
             small_cap_name,
             anchor_name,

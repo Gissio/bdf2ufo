@@ -2,13 +2,14 @@
 
 ## 1.7
 
-- Added Latin and Cyrillic small caps (`smcp`, `c2sc`), taken from `.sc` glyphs, Unicode small capitals and lowercase letters drawn as small capitals (such as Cyrillic `в`, `к`, `т` or Latin `ø`, `ŋ`, `ə`). Accented small caps are composed from the accents of their capitals. A script's lookup is only generated when its whole basic alphabet has small caps.
-- Small caps have no assumed anchors, only those of `custom_anchors`. bdf2ufo warns about each small cap that lacks a base anchor (`top`, `bottom`, `ogonek`, `horn`) that its capital has.
+- Added Latin and Cyrillic small caps (`smcp`, `c2sc`), taken from `.sc` glyphs, Unicode small capitals and lowercase letters drawn as small capitals (such as Cyrillic `в`, `к`, `т` or Latin `ø`, `ŋ`, `ə`). A script's lookup is only generated when its whole basic alphabet has small caps.
+- Accented small caps are composed from their base small cap and the accents of the letter. Each accent attaches to the anchors that `custom_anchors` gives the small cap, so it sits on the small cap as on a lowercase letter. An accented small cap whose base lacks the anchor of an accent is not built.
+- bdf2ufo warns about each small cap that lacks a base anchor (`top`, `bottom`, `ogonek`, `horn`) that its capital has.
 - Added support for unencoded glyphs (`ENCODING -1`), which keep their BDF glyph name. `custom_anchors` can be keyed by glyph name.
 - Added `-v` (`--verbose`); by default, only warnings and errors are printed.
 - `ď`, `ľ`, `Ľ`, `ť` and `ģ` now decompose with combining commas (U+0313, U+0312) instead of modifier letters.
 - Greek symbol letters (`ϐ ϑ ϕ ϖ`…) are no longer decomposed.
-- Custom anchors for a missing glyph log a warning instead of failing.
+- Custom anchors for a glyph that is not in the font fail with an error message instead of a traceback.
 - The monospace check ignores zero-width format characters.
 - Fixed the default superscript and subscript offsets, which also shifted them sideways.
 
