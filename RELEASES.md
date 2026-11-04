@@ -1,5 +1,13 @@
 # Releases
 
+## 1.8
+
+- Every nonspacing or enclosing mark (Unicode category Mn or Me) is now in the GDEF mark glyph class, not only the marks with attachment anchors. U+0336, U+0340, U+0341, U+FE0E and U+FE0F were missing, which Fontspector reported as a `mark-chars` warning.
+- When the `JITT` axis is enabled (variable, or with a non-zero default), `OS/2.usWinAscent` and `usWinDescent` now leave room for the largest jitter offset, so jittered elements are no longer clipped on Windows (Fontspector's `ascent` and `descent` failures). The offset of an element is limited to `MAX_JITTER_OFFSET` (one element), which the metrics add. Builds without `JITT` keep the metrics of the bitmap bounding box.
+- In Turkish, Azerbaijani, Crimean Tatar, Gagauz and Tatar (`SMALL_CAPS_DOTTED_I_LANGUAGES`), `smcp` turns `i` into the dotted small cap of `İ`, taken from `c2sc`. The language systems are declared for all features, so `ccmp` and `c2sc` keep working in them. This fixes Shaperglot's "Small caps i should be dotted" warning.
+- The bilabial click `ʘ` (U+0298), a lowercase letter without a capital, now has a `.sc` copy for `smcp`, as Shaperglot's "Small caps for Latin letters" check expects. Letters in `SMALL_CAPS_LOWERCASE` take part in small caps even without a capital.
+- Glyphs whose elements overlap in at least one master (heavier weights, bleed, jitter) are marked with `public.truetype.overlap` in the default master, so the compiled `glyf` table has the overlap bit set. Rasterizers that fill with the non-zero rule, such as Apple's, then render the overlaps correctly. This fixes Fontspector's `no-overlaps-bit` warning. The default master is saved last, after all masters were checked.
+
 ## 1.7
 
 - Added Latin and Cyrillic small caps (`smcp`, `c2sc`), taken from `.sc` glyphs, Unicode small capitals and lowercase letters drawn as small capitals (such as Cyrillic `в`, `к`, `т` or Latin `ø`, `ŋ`, `ə`). A script's lookup is only generated when its whole basic alphabet has small caps.
