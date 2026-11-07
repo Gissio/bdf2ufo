@@ -1,5 +1,9 @@
 # Releases
 
+## 1.8.1
+
+- The `axis_maps` build configuration option now also works on an axis that is not variable. The map gives the design coordinate of the axis' default value, so a static font can report a user coordinate such as weight 400 (Regular) or 700 (Bold) while its elements keep the size of another design coordinate. Before, an axis map for an axis that was not in `variable_axes` was an error. The axis map of a variable axis must still span the axis range.
+
 ## 1.8
 
 - Every nonspacing or enclosing mark (Unicode category Mn or Me) is now in the GDEF mark glyph class, not only the marks with attachment anchors. U+0336, U+0340, U+0341, U+FE0E and U+FE0F were missing, which Fontspector reported as a `mark-chars` warning.
