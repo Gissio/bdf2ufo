@@ -48,11 +48,19 @@ The pixel element size follows the design coordinate of the `wght` axis: an elem
 
 * **Named Glyphs**
 
-  Keeps unencoded glyphs (`ENCODING -1` in the `.bdf` file) under their BDF glyph name, without a Unicode value.
+  Keeps unencoded glyphs (`ENCODING -1` in the `.bdf` file) under their BDF glyph name, without a Unicode value, if they are small caps (`.sc`), alternates (`.zero`) or, with the `ligatures` option, ligatures (`.liga`), run pieces (`.seq`) and numeric forms (`.num`). Other unencoded glyphs are left out, since no feature would reach them.
 
 * **Small Caps**
 
   Generates the `smcp` and `c2sc` OpenType features for Latin and Cyrillic from the glyphs present in the font. See [Small caps](#small-caps).
+
+* **Ligatures**
+
+  Generates a `calt` feature for ligatures such as `!=` or `<|>` from `.liga` glyphs, arrows and lines of any length such as `-->` or `<====>` from `.seq` pieces, and forms such as the `×` of `1920x1080` from `.num` glyphs, keeping monospace fonts monospace. See [Ligatures](#ligatures).
+
+* **Slashed Zero**
+
+  Generates the `zero` feature from a `zero.zero` glyph. See [Slashed zero](#slashed-zero).
 
 ## Small caps
 
@@ -116,6 +124,65 @@ U+0431 has no small cap, uni0431.sc could be added
 uni0451.sc could be built with a small cap of uni0415
 ```
 
+## Ligatures
+
+A ligature is an unencoded glyph named after the glyph names of its characters, joined by underscores, with a `.liga` suffix: `exclam_equal.liga` for `!=`, `exclam_equal_equal.liga` for `!==`, `less_exclam_hyphen_hyphen.liga` for `<!--`. Glyph names are AGL names (`hyphen`, `less`, `equal`, `bar`, `period`) or `uniXXXX`. Draw the ligature as wide as its characters together; in a monospace font, that is one cell per character (advance 12 for two characters in a font with `monospace: 6`).
+
+Ligatures, runs and numeric forms are off by default, so one `.bdf` file can build a font with and one without them. Turn them on in the build configuration:
+
+```yaml
+ligatures: true
+```
+
+bdf2ufo writes the substitutions into the `calt` feature, which editors and terminals with ligature support turn on:
+
+* **Monospace fonts:** a ligature of n characters becomes n glyphs one cell wide: n − 1 empty spacer glyphs (`LIG`), followed by the ligature glyph, whose drawing reaches back over the spacers. Every glyph keeps the monospace advance, so the font stays monospace (`isFixedPitch`, Panose, `advanceWidthMax`), columns stay aligned and the cursor still moves one cell at a time. A ligature whose advance is not a whole number of cells is left out with a warning.
+* **Proportional fonts:** the characters are replaced by the ligature glyph, with the advance it is drawn with.
+
+A ligature only forms where the character before or after it does not continue it: not where its first or last character repeats (`++` forms in `i++;`, but not in `++++`), and not where it is part of a longer run, see below (`<=` forms in `a <= b`, `a<=-1` and `-<=`, but `<==` and `<=>` are runs, and so are the `<<` of `<<-` and the `!=` of `=!=`). A run that would only take a head character of a ligature does not stop it: `|>` forms in `|>-`, and `!=` in `!=>`. Longer ligatures are tried first, and of the same length, `||`, `>>`, `<<` and `<|` before the others, as in Fira Code (`LIGATURE_FIRST` in `data.py`): `<|` takes the `<` of `--<|` before `--` checks for a run, so `--` stays a ligature there.
+
+A ligature drawn like its characters keeps them from forming a run or another ligature, such as a `greater_equal_less.liga` drawn as `>=<`, which Fira Code leaves as typed. A ligature can also be drawn as the shapes another font shows for its characters, such as a `less_less_plus_greater.liga` drawn as `<` and the `<+>` ligature.
+
+### Runs
+
+A run is a line of any length, such as `--`, `---->`, `<==>`, `|->`, `####` or `___`. Each of its characters becomes a piece one cell wide, so a monospace font only needs a few pieces for every length. A piece is an unencoded glyph with a `.seq` suffix, named after the glyph names of the characters it stands for, the line character and its role, joined by underscores:
+
+| Piece | Stands for | Example |
+|---|---|---|
+| `hyphen_start.seq` | the first `-` of a run | `-` of `-->` |
+| `hyphen_middle.seq` | a `-` inside a run | `-` of `<-->` |
+| `hyphen_end.seq` | the last `-` of a run | `-` of `<--` |
+| `less_hyphen_start.seq` | a head before the line | `<` of `<--` |
+| `greater_hyphen_end.seq` | a head after the line | `>` of `-->` |
+| `less_less_hyphen_start.seq` | a head of two characters, drawn two cells wide | `<<` of `<<-` |
+| `less_equal_equal_end.seq` | a head after a line of at least two cells: two line characters, or a head and a line character | `<` of `==<` and `<=<`, but not of `a=<b` |
+| `bar_equal_equal_start.seq` | a head before a line of at least two cells: two line characters, or a line character and what may continue it | `\|` of `\|==` and `\|=>`, but not of `a\|=b` |
+| `bar_hyphen_middle.seq` | a head between two lines, joining both | middle `\|` of `\|---\|---\|`, `>` of `->-` (`greater_hyphen_middle.seq`), `!` of `==!==` (`exclam_equal_middle.seq`) |
+
+A line character needs all three of its start, middle and end pieces; heads are optional. A head between two lines of the same character takes its middle piece if the font has one, so it joins both sides (`->-`, `==/==`). A head between two different lines joins the `=` line before the `-` line, and otherwise the line before it, as in Fira Code: the `>` of `-->==` starts `>==`, and the `>` of `==>--` and `=>-` ends the arrow (`SEQUENCE_LINE_ORDER` in `data.py`). A run forms wherever a line character is next to another one, or to one of its heads, after the ligatures, so a ligature that is a whole operator, such as `<=`, `==` or `>>=`, wins over a run. Runs need a monospace font.
+
+### Numeric forms
+
+A numeric form is an unencoded glyph with a `.num` suffix, such as `x.num` or `colon.num`. It replaces its character between two digits, or between `0` and a hexadecimal letter: the `×` of `1920x1080` and `0xFF`, the centered colon of `10:30`.
+
+### Checking the rules
+
+`scripts/bdf2ufo/calt.py` reads the rules from the glyph names and only needs the Python standard library. Its `CaltRules.shape()` shapes a line of text the way the generated `calt` feature does, step by step, so a specimen or a test can set text without a text shaper.
+
+The glyphs of the `calt` feature are added after all other glyphs, so the `JITT` axis jitters the other glyphs the same way with or without ligatures.
+
+## Slashed zero
+
+Draw the slashed (or dotted) zero as an unencoded glyph named `zero.zero`, the glyph name of `0` with the feature tag as suffix. bdf2ufo writes the `zero` feature, which apps turn on to tell `0` from `O`:
+
+```fea
+feature zero {
+    sub zero by zero.zero;
+} zero;
+```
+
+In a monospace font, the alternate must have the monospace advance, or it is left out with a warning. The `zero` feature needs no build configuration option, and it is off until an app turns it on, so `0` keeps its default form. Like ligatures, alternates are added after all other glyphs.
+
 ## Axes overview
 
 | Tag  | Name      | Small                                    | Large                                    |
@@ -176,6 +243,22 @@ python -m scripts.bdf2ufo.cli
 ```
 
 bdf2ufo only prints warnings and errors. Add `-v` (`--verbose`) to log the progress of the conversion, including which small caps could be added.
+
+bdf2ufo builds the masters in parallel, one process per CPU it may run on (which `taskset` or a container can limit). `-j` (`--jobs`) sets the number of processes; `-j 1` builds them one after the other. The masters are the same either way.
+
+`-c` (`--config`) can be given more than once. The options of each file replace those of the files before it, so a second font can share the configuration of the first one and change only a few options:
+
+```bash
+python -m scripts.bdf2ufo.cli -c sources/MyFont-build-config.yaml -c sources/MyFontCode-build-config.yaml sources/MyFont.bdf sources
+```
+
+```yaml
+# MyFontCode-build-config.yaml
+family_name: "My Font Code"
+ligatures: true
+```
+
+Each top-level option is replaced as a whole: a `custom_anchors` or `variable_instances` in a later file replaces the earlier one entirely.
 
 ### 5. Build your fonts
 

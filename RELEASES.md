@@ -1,5 +1,18 @@
 # Releases
 
+## 1.9
+
+- Added ligatures (`.liga` glyphs, such as `hyphen_greater.liga` for `->`), enabled with the `ligatures` build option. Monospace fonts pad them with `LIG` spacer glyphs to stay monospace. A ligature does not form inside a longer sequence, such as `<=` in `<==`. Longer ligatures are tried first, and `||`, `>>`, `<<` and `<|` before the others of their length, as in Fira Code. See [Ligatures](README.md#ligatures).
+- Added runs: arrows and lines of any length (`---->`, `<==>`, `|->`, `####`), assembled from one-cell `.seq` pieces for line starts, middles, ends and heads. See [Runs](README.md#runs).
+- Added numeric forms (`.num`), which replace a character between digits, such as `x` in `1920x1080` and `0xFF` or `:` in `10:30`. See [Numeric forms](README.md#numeric-forms).
+- Added the `zero` feature (slashed zero) from a `zero.zero` glyph. See [Slashed zero](README.md#slashed-zero).
+- Added `calt.py`, which writes the `calt` feature from the glyph names. Its `CaltRules.shape()` sets text without a text shaper, for specimens and tests.
+- Unencoded glyphs are left out unless they are `.sc`, `.zero` or, with ligatures enabled, `.liga`, `.seq` or `.num` glyphs.
+- `-c` (`--config`) can be given more than once; later files override earlier ones.
+- Masters are built in parallel (`-j`, `--jobs`) with identical output.
+- Faster glyph drawing, and faster masters without jitter.
+- Refactored the outline, kerning group and `calt` code.
+
 ## 1.8.1
 
 - The `axis_maps` build configuration option now also works on an axis that is not variable. The map gives the design coordinate of the axis' default value, so a static font can report a user coordinate such as weight 400 (Regular) or 700 (Bold) while its elements keep the size of another design coordinate. Before, an axis map for an axis that was not in `variable_axes` was an error. The axis map of a variable axis must still span the axis range.

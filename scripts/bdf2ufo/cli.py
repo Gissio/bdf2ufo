@@ -9,6 +9,7 @@ License: MIT
 
 import argparse
 import logging
+import os
 import sys
 
 import yaml
@@ -18,12 +19,21 @@ from .designspace import DesignSpace
 
 # Definitions
 
-BDF2UFO_VERSION = "1.8.1"
+BDF2UFO_VERSION = "1.9"
 
 # Main entry point
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+def _get_cpu_count() -> int:
+    """Return the number of CPUs this process may run on, which taskset or a
+    container can limit."""
+    if hasattr(os, "sched_getaffinity"):
+        return len(os.sched_getaffinity(0))
+
+    return os.cpu_count() or 1
 
 
 def _setup_argument_parser() -> argparse.ArgumentParser:
@@ -42,7 +52,23 @@ def _setup_argument_parser() -> argparse.ArgumentParser:
     )
 
     # Configuration options
-    parser.add_argument("-c", "--config", help="path to a YAML configuration file")
+    parser.add_argument(
+        "-c",
+        "--config",
+        action="append",
+        default=[],
+        help="path to a YAML configuration file; if given more than once, the "
+        "options of each file replace those of the files before it",
+    )
+
+    parser.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=_get_cpu_count(),
+        help="the number of processes that build the masters (default: the "
+        "number of CPUs this process may run on)",
+    )
 
     # Positional arguments
     parser.add_argument("input", help="the .bdf file to be converted")
@@ -66,10 +92,10 @@ def main() -> int:
     # Load configuration
     logger.info("Loading configuration")
     config = {}
-    if args.config:
+    for config_path in args.config:
         try:
-            with open(args.config, "r", encoding="utf-8") as f:
-                config = yaml.safe_load(f) or {}
+            with open(config_path, "r", encoding="utf-8") as f:
+                config.update(yaml.safe_load(f) or {})
         except (IOError, yaml.YAMLError) as e:
             logger.error("Failed to load configuration file: %s", e)
             return 1
@@ -91,7 +117,7 @@ def main() -> int:
 
         designspace.setup(bdf_font, config)
 
-        designspace.build(args.output)
+        designspace.build(args.output, args.jobs)
     except ValueError as e:
         logger.error("Failed to build designspace: %s", e)
         return 1
