@@ -1,5 +1,11 @@
 # Releases
 
+## 1.9.1
+
+- Added Hebrew: the points and accents (U+0591–05C7, U+FB1E) are now marks with anchors (`bottom`, `top`, `center` for dagesh, `topLeft` for holam and the sin dot, `topRight` for the shin dot), and fonts with Hebrew letters declare the `hebr` script.
+- Hebrew letters and marks get default anchors where no precomposed glyph gives one, as any point or accent can follow any letter: a mark keeps the height at which it is drawn and is centred on the letter (or aligned with its left or right edge, for `topLeft` and `topRight`). Before, a mark without an anchor on its letter stayed at its drawn position, under the following letter in right-to-left text. See [Anchors](README.md#anchors). The scripts are listed in `DEFAULT_ANCHOR_SCRIPTS`.
+- Refactored the position of a mark's anchor into `_get_mark_anchor_offset()`.
+
 ## 1.9
 
 - Added ligatures (`.liga` glyphs, such as `hyphen_greater.liga` for `->`), enabled with the `ligatures` build option. Monospace fonts pad them with `LIG` spacer glyphs to stay monospace. A ligature does not form inside a longer sequence, such as `<=` in `<==`. Longer ligatures are tried first, and `||`, `>>`, `<<` and `<|` before the others of their length, as in Fira Code. See [Ligatures](README.md#ligatures).

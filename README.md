@@ -41,6 +41,7 @@ The pixel element size follows the design coordinate of the `wght` axis: an elem
 
   * base-to-mark anchors
   * mark-to-mark anchors
+  * default anchors for the letters and marks of Hebrew, where few letter and mark pairs have a precomposed glyph. See [Anchors](#anchors).
 
 * **Hinting-Safe Components**
 
@@ -182,6 +183,18 @@ feature zero {
 ```
 
 In a monospace font, the alternate must have the monospace advance, or it is left out with a warning. The `zero` feature needs no build configuration option, and it is off until an app turns it on, so `0` keeps its default form. Like ligatures, alternates are added after all other glyphs.
+
+## Anchors
+
+Draw combining marks (such as U+0301 or U+05B7) with no advance, to the left of the origin, where they sit on the preceding glyph. bdf2ufo learns the anchors from the precomposed glyphs: `é` places a `top` anchor on `e` and a `_top` anchor on the acute, so that the acute lands on `e` as `é` draws it. Each mark has one anchor (`top`, `bottom`, `center`, `ogonek`, `horn`, `topLeft` or `topRight`), listed in `MARKS` in `data.py`. `custom_anchors` sets anchors that the precomposed glyphs do not give.
+
+In Hebrew, any point or accent can follow any letter, but only a few pairs have a precomposed glyph (U+FB1D–FB4F). A Hebrew letter that lacks the anchor of a Hebrew mark therefore gets a default anchor, and so does a mark that no precomposed glyph uses:
+
+* The mark keeps the height at which it is drawn.
+* It is centred on the letter's pixels. For `topLeft` (holam, sin dot) and `topRight` (shin dot), the left or right edges of the mark and the letter are aligned instead.
+* The anchors that precomposed glyphs or `custom_anchors` give are kept. A precomposed glyph, such as `וֹ` (vav with holam), can thus place a mark on its letter differently.
+
+Draw the Hebrew marks centred on the letters, at the height where they belong. A mark whose width in pixels differs in parity from the letter's (an even-width mark on an odd-width letter) is centred one pixel to the left. The scripts with default anchors are listed in `DEFAULT_ANCHOR_SCRIPTS` in `data.py`.
 
 ## Axes overview
 
